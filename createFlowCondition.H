@@ -58,7 +58,7 @@ forAll(boundaryNames, boundaryI)
 	float Cwt  = 1-Cvt;
 
 	const scalar & ut = friction->ut(Qt*alpha, subwide, subslope, rhot, boundaryName);	
-    const List<scalar> & ht = friction->ht(Qt*alpha, subwide, subslope, subheight, rhot, boundaryName);
+        const List<scalar> & ht = friction->ht(Qt*alpha, subwide, subslope, subheight, rhot, boundaryName);
 
 	label length(faBoundaries[faboundaryNames.find(boundaryName)].size());
 	label index(faboundaryNames.find(boundaryName));
