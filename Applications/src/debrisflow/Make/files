@@ -1,0 +1,29 @@
+HormannAgathos.C
+
+friction = friction
+$(friction)/frictionModel/frictionModel.C
+$(friction)/frictionModel/frictionModelNew.C
+$(friction)/Voellmy/Voellmy.C
+$(friction)/ManningStrickler/ManningStrickler.C
+$(friction)/Quadratic/Quadratic.C
+$(friction)/VoellmyManning/VoellmyManning.C
+$(friction)/QuadraticManning/QuadraticManning.C
+
+deposition = deposition
+$(deposition)/depositionModel/depositionModel.C
+$(deposition)/depositionModel/depositionModelNew.C
+$(deposition)/depositionOff/depositionOff.C
+$(deposition)/Stoppingprofile/Stoppingprofile.C
+$(deposition)/Takahashi/Takahashi.C
+
+entrainment = entrainment
+$(entrainment)/entrainmentModel/entrainmentModel.C
+$(entrainment)/entrainmentModel/entrainmentModelNew.C
+$(entrainment)/entrainmentOff/entrainmentOff.C
+$(entrainment)/Erosionenergy/Erosionenergy.C
+$(entrainment)/Exponential/Exponential.C
+$(entrainment)/Egashira/Egashira.C
+$(entrainment)/Cao/Cao.C
+$(entrainment)/RAMMS/RAMMS.C
+
+LIB = $(FOAM_USER_LIBBIN)/libfaDebrisflow
