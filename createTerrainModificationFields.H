@@ -106,15 +106,15 @@ if (terrainModification)
 
 	IOdictionary faMeshDefinition
 	(
-		IOobject
-		(
-			"faMeshDefinition",
-			runTime.constant(),
-			"faMesh",
-			mesh,
-			IOobject::MUST_READ,
-			IOobject::NO_WRITE
-		)
+	    IOobject
+	    (
+		"faMeshDefinition",
+		runTime.constant(),
+		"faMesh",
+		mesh,
+		IOobject::MUST_READ,
+		IOobject::NO_WRITE
+	    )
 	);
 
 	wordList patchNameList = faMeshDefinition.lookup("polyMeshPatches");
