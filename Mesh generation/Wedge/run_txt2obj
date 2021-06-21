@@ -1,0 +1,19 @@
+
+#!/bin/sh
+
+#python3 txt2obj.py -i 'Illgraben2.asc' -o 'Illgraben2' -fillup -exactcopy  -alphaminY '0.71, 0.76' -offsetx '-614898' -offsety '-128568'
+
+#python3 txt2obj.py -i 'Illgraben1.asc' -o 'Illgraben1' -fillup -exactcopy  -alphaminY '0.82, 0.87' -offsetx '-614898' -offsety '-128374'
+
+#python3 txt2obj.py -i 'dem_Huasco.asc' -o 'Huasco' -fillup -alphaminX '0.17, 0.25' -offsetx '-358350' -offsety '-6802600' -maxY '(200, 0) ; (200, 200) ; (200, 400)'
+
+#python3 txt2obj.py -i 'dem_Huasco.asc' -o 'Huasco' -fillup -offsetx '-358350' -offsety '-6802600' -minY '(358350, 6802800) ; (358500, 6802600) ; (358680, 6802600) ; (358785, 6802790) ; (358980, 6802790)' -maxY '(358350, 6802900) ; (358580, 6802900) ; (358630, 6802865) ; (358980, 6802865)' -minX '(358350, 6802800) ; (358350, 6802900)' -maxX '(358980, 6802790) ; (358980, 6802865)' -xres '100' -yres '50' -alphamaxX '0.48, 0.58'
+
+#python3 txt2obj.py -i 'dem_Huasco_rio.asc' -o 'Huasco_rio' -fillup -offsetx '-358340' -offsety '-6802410' -minY '(358550, 6802410) ; (358800, 6802410)' -maxX '(358800, 6802410) ; (358850, 6802700) ; (358980, 6802860) ; (358980, 6803020) ; (358700, 6803080) ; (358630, 6803140)' -maxY '(358420, 6803140) ; (358630, 6803140)' -minX '(358550, 6802410) ; (358480, 6802580) ; (358350, 6802700) ; (358350, 6803000) ; (358420, 6803140)' -xres '50' -yres '200' -alphamaxX '0.56, 0.60' -alphaminY '0.54, 0.64'
+
+#python3 txt2obj.py -i 'WSL_experiment4.asc' -o 'WSL_experiment4' -fillup -minY '(2.023, 0.5) ; (2.873,0.5)' -maxY '(0.34, 12.9151) ; (1.19, 12.9151)' -minX '(2.023, 0.5) ; (2.023, 5.5) ; (1.732, 5.953) ; (1.401, 6.284) ; (0.968, 6.534) ; (0.34, 7.092) ; (0.34, 12.9151)' -maxX '(2.873,0.5) ; (2.873,5.5) ; (2.762,6.548) ; (1.996,7.314) ; (1.19, 7.9151) ; (1.19, 12.9151)' -alphaminY '0.43, 0.57' -xres '160' -yres '650' -offsety '-0.5'
+
+python3 txt2obj.py -i 'cuna_two_slopes_20y10.asc' -o 'cuna_two_slopes_20y10' -fillup -exactcopy -alphaminY '0.4, 0.6' 
+
+#------------------------------------------------------------------------------
+                                                                                                                                                                                                    

@@ -1,0 +1,36 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:                           	      |
+|   \\  /    A nd           | 						      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      releaseFlow;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+boundaries
+(
+    minY1
+    {
+	direction y;
+	sense negative;
+	Q
+	(
+	     (0   0  0.2)
+	     (40  40 0.2)
+	     (75  75 0.35)
+	     (80  80 0.33)
+	     (120 20 0.2)
+	     (200 0  0.2)
+	     (400 0  0.2)
+	);
+
+    }
+);
+

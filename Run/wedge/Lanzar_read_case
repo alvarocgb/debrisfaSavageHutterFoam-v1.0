@@ -1,0 +1,11 @@
+#!/bin/sh
+#SBATCH -J wedge_read_case
+#SBATCH -p slims
+#SBATCH -n 8
+#SBATCH --mem-per-cpu=2400
+#SBATCH --mail-user=
+#SBATCH --mail-type=ALL
+#SBATCH --output=wedge_read_case%j.out
+#SBATCH --error=wedge_read_case%j.err
+
+srun -n 8 python3 read_debris_case.py -path './' -o 'Results' -lp 'lp_wedge_two_slopes_20y10.dat' -tp 'tp_wedge_two_slopes_20y10.dat' -dx 5 -dy 5 -rx 10 -ry 10 -alpha 0.9 -niter 3 -alphafield 0 -niterfield 0  -dist 40 -ntp 180 -h_flag -Cv_flag -Us_flag -deltaz0_flag -Sm_flag -rho_flag -rcg_flag -M_flag -V_flag -Vsed_flag -Q_flag

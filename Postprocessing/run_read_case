@@ -1,0 +1,14 @@
+
+#!/bin/sh
+
+#mpirun -n 8 python3 read_debris_case.py -path '/home/memorista/OpenFOAM/memorista-5.0/run/debrisfaSavageHutterFoam/wedge/Wedge_testing_lp' -o 'Results' -lp 'lp_wedge_two_slopes_20y10.dat' -tp 'tp_wedge_two_slopes_20y10.dat' -dx 5 -dy 5 -rx 10 -ry 10 -alpha 0 -niter 0 -alphafield 0 -niterfield 0  -dist 40 -ntp 80 -h_flag -Cv_flag -Us_flag -Q_flag -M_flag -V_flag
+
+mpirun -n 4 python3 read_debris_case.py -path '/home/memorista/OpenFOAM/memorista-5.0/run/debrisfaSavageHutterFoam/wedge/E1F3' -o 'Results' -lp 'lp_wedge_two_slopes_20y10.dat' -tp 'tp_wedge_two_slopes_20y10.dat' -dx 5 -dy 5 -rx 10 -ry 10 -alpha 0 -niter 0 -alphafield 0 -niterfield 0  -dist 40 -ntp 150 -h_flag -Cv_flag -Us_flag  -deltaz0_flag -Sm_flag -rho_flag -rcg_flag -M_flag -V_flag -Vsed_flag -Q_flag
+
+#mpirun -n 4 python3 read_flume_WSL.py -path '/home/memorista/OpenFOAM/memorista-5.0/run/debrisfaSavageHutterFoam/WSL/WSL_fine' -o 'Results' -lp 'long_profile_WSL4.dat' -dx 0.005 -dy 0.005 -rx 0.02 -ry 0.02 -alpha 0 -niter 0 -alphafield 0 -niterfield 0  -dist 0.2 -ntp 40 -intdist 0.1 -fS_interpolation -h_flag -Us_flag -Q_flag
+
+#python3 read_flume_WSL.py -path '/home/tesistahid1/OpenFOAM/tesistahid1-v1812/run/WSL_base' -o 'Results' -lp 'long_profile_WSL4.dat' -dx 0.005 -dy 0.005 -rx 0.02 -ry 0.02 -alpha 0 -niter 0 -alphafield 0 -niterfield 0  -dist 0.2 -ntp 40 -intdist 0.1 -fS_interpolation -h_flag -Us_flag -Q_flag
+
+
+#------------------------------------------------------------------------------
+                                                                                                                                                                                                    

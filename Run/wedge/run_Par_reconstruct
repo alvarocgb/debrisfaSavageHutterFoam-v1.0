@@ -1,0 +1,8 @@
+
+#!/bin/sh
+
+mpirun -n 4 python3 Par_reconstructPar.py -h_flag -Cv_flag -Us_flag -Q_flag -deltaz0_flag
+
+#mpirun -n 4 python3 Par_reconstructPar.py -path '/home/memorista/OpenFOAM/memorista-5.0/run/debrisfaSavageHutterFoam/wedge/E2F3' -o 'Reconstruct' -h_flag -Cv_flag -Us_flag  -Q_flag -withZero -deltaz0_flag
+#------------------------------------------------------------------------------
+                                                                                                                                                                                                    

@@ -1,0 +1,29 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:                           	      |
+|   \\  /    A nd           | 						      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      meshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+maxCellSize 10;
+
+surfaceFile "constant/triSurface/cuna_two_slopes_20y10.obj";
+
+localRefinement
+{
+    terrain
+    {
+        additionalRefinementLevels 2;
+    }
+}
+
+// ************************************************************************* //

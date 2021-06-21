@@ -1,0 +1,73 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:                               	      |
+|   \\  /    A nd           | 						      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      releaseArea;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+fields
+(
+    he
+    {
+        regions
+        (
+            base
+            {
+                type polygonlinear;
+                offset (0 0 0);
+                vertices
+                (
+                    (0. 1000. 0)
+                    (200. 1000. 0)
+                    (200. 400. 0)
+                    (0. 400. 0)
+                );
+                valueAtZero 2;
+                z0 0;
+                dfdz 0;
+                projectToNormal yes;
+            }
+            base1
+            {
+                type polygonlinear;
+                offset (0 0 0);
+                vertices
+                (
+                    (0. 400. 0)
+                    (200. 400. 0)
+                    (200. 300. 0)
+                    (0. 300. 0)
+                );
+                valueAtZero 0;
+                y0 300;
+                dfdy 0.02;
+                projectToNormal yes;
+            }
+            base2
+            {
+                type polygonlinear;
+                offset (0 0 0);
+                vertices
+                (
+                    (0. 300. 0)
+                    (200. 300. 0)
+                    (200. 0. 0)
+                    (0. 0. 0)
+                );
+                valueAtZero 0;
+                z0 0;
+                dfdy 0;
+                projectToNormal yes;
+            }
+        );
+    }
+);

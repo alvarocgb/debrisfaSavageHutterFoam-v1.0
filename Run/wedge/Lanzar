@@ -1,0 +1,22 @@
+#!/bin/sh
+#SBATCH -J wedge
+#SBATCH -p slims
+#SBATCH -n 4
+#SBATCH --mem-per-cpu=2400
+#SBATCH --mail-user=
+#SBATCH --mail-type=ALL
+#SBATCH --output=wedge%j.out
+#SBATCH --error=wedge%j.err
+
+source $FOAM_BASH
+
+cp -r 0.orig 0
+
+pMesh
+makeFaMesh
+newreleaseAreaMapping
+decomposePar
+
+srun -n 4  debrisfaSavageHutterFoam -parallel
+
+reconstructPar -withZero -time 'none'

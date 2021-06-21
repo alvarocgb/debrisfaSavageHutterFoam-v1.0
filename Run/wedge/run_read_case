@@ -1,0 +1,7 @@
+
+#!/bin/sh
+
+mpirun -n 4 python3 read_debris_case.py -path './' -o 'Results' -lp 'lp_wedge_two_slopes_20y10.dat' -tp 'tp_wedge_two_slopes_20y10.dat' -dx 5 -dy 5 -rx 10 -ry 10 -alpha 0.9 -niter 3 -alphafield 0 -niterfield 0  -dist 40 -ntp 90 -h_flag -Cv_flag -Us_flag  -deltaz0_flag -Sm_flag -rcg_flag -M_flag -V_flag -Q_flag
+
+#------------------------------------------------------------------------------
+                                                                                                                                                                                                    

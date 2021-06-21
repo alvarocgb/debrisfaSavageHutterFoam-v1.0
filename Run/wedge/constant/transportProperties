@@ -1,0 +1,109 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:		                              |
+|   \\  /    A nd           | 						      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      transportProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+pressureFeedback    off;
+
+hmin                hmin [ 0 1 0 0 0 0 0]    1e-5;    
+
+u0                  u0 [ 0 1 -1 0 0 0 0]     1e-4;    
+
+h0                  h0 [ 0 1 0 0 0 0 0]      1e-4;   
+
+shi                 shi [ 0 0 0 0 0 0 0]      1;
+
+rho_w               rho_w [ 1 -3  0 0 0 0 0 ]  1000.;
+
+rho_s               rho_s [ 1 -3  0 0 0 0 0 ]  2700.;
+
+rho_b               rho_b [ 1 -3  0 0 0 0 0 ]  1850.;
+
+frictionModel       Voellmy;
+
+entrainmentModel    Exponential;
+
+depositionModel     depositionOff;
+
+terrainModification on;
+
+VoellmyCoeffs
+{
+    regions
+    (
+	    base
+	    {
+		mu           mu [ 0 0 0 0 0 0 0] 0.20;
+		xi           xi [ 0 1 -2 0 0 0 0] 200; 
+		type        default;
+	    }
+    );
+}
+
+ExponentialCoeffs
+{
+    E               E [0 -1 0 0 0 0 0]      0.002;
+    tauc            tauc [1 -1 -2 0 0 0 0]   750;
+    entrainment	    nonuniform;
+    entrainmentZones
+    (
+        base
+        {
+            offset (0 0 0);
+            vertices
+            (
+                (20. 900. 0)
+                (180. 900. 0)
+                (180. 300. 0)
+                (20. 300. 0)
+            );
+        }
+    );
+}
+
+
+StoppingprofileCoeffs
+{
+    ad              ad [0 0 0 0 0 0 0]      1.0;
+    ud              ud [0 1 -1 0 0 0 0]     0.25;
+    hmin            hmin [ 0 1 0 0 0 0 0]   1e-5;
+    deposition	    nonuniform;
+    depositionZones
+    (
+        base
+        {
+            offset (0 0 0);
+            vertices
+            (
+                (20. 900. 0)
+                (180. 900. 0)
+                (180. 270. 0)
+                (20. 270. 0)
+            );
+        }
+    );
+}
+
+terrainModificationCoeffs
+{
+    nTerrainIter    5;
+    deltahMin       deltahMin [ 0 1 0 0 0 0 0]   0.01;
+    hMinterrain     hMinterrain [ 0 1 0 0 0 0 0]   0.001;
+    alpha_relax     0.85;
+    alpha_smooth    0.7;
+    alpha_gamma     0.2;
+    beta_gamma      0.6;
+}
+
+// ************************************************************************* //
