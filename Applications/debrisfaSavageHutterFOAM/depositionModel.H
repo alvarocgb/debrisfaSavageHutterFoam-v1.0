@@ -99,10 +99,10 @@ protected:
         //- Sink term
         mutable areaScalarField Sd_;
 
-	//- Terrain volumetric concentration of sediment
-	dimensionedScalar Cvb_;
+        //- Terrain volumetric concentration of sediment
+        dimensionedScalar Cvb_;
 
-	//- Deposition zones field
+        //- Deposition zones field
         areaScalarField dZ_;
 
 
@@ -159,10 +159,10 @@ public:
             const areaVectorField& Us,
             const areaScalarField& h,
             const areaScalarField& he,
-	    const areaScalarField& rho,
+	        const areaScalarField& rho,
             const areaScalarField& pb,
             const areaVectorField& tau,
-	    const areaScalarField& Cv
+	        const areaScalarField& Cv
         );
 
 
@@ -176,10 +176,10 @@ public:
             const areaVectorField& Us,
             const areaScalarField& h,
             const areaScalarField& he,
-	    const areaScalarField& rho,
+	        const areaScalarField& rho,
             const areaScalarField& pb,
             const areaVectorField& tau,
-	    const areaScalarField& Cv
+	        const areaScalarField& Cv
         );
 
 

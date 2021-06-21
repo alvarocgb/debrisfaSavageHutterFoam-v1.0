@@ -72,7 +72,7 @@ forAll(boundaryNames, boundaryI)
 			<< " valid boundary in faBoundary." << exit(FatalIOError);
 	}
 
-        dictionary boundaryDict = boundaryInfo.dict();
+    dictionary boundaryDict = boundaryInfo.dict();
 	
 	word sense;
 	word direction;
@@ -80,7 +80,7 @@ forAll(boundaryNames, boundaryI)
 	boundaryDict.lookup("sense") >> sense;
 	boundaryDict.lookup("direction") >> direction;
 
-        keyType name = boundaryNames[boundaryI];
+    keyType name = boundaryNames[boundaryI];
 
 	dictionary subHidrogram(name);
 
