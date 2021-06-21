@@ -68,10 +68,10 @@ class RAMMS
 {
     // Private data
 
-	//- Depth of erosion relative to the start of the simulation
+	    //- Depth of erosion relative to the start of the simulation
         mutable areaScalarField ett_;
 
-	//- 
+	    //- 
         mutable areaScalarField emm_;
 
         //- Maximum potential erosion depth as function of the maximum shear stress
@@ -83,8 +83,8 @@ class RAMMS
         //- Critical shear stress
         dimensionedScalar tauc_;
 
-	//- Initial entrainment height
-	const areaScalarField he0_;	
+	    //- Initial entrainment height
+	    const areaScalarField he0_;	
 
         //- Reference to the gravitation fields
         const areaVectorField& gs_;
@@ -104,11 +104,11 @@ public:
             const dictionary& frictionProperties,
             const areaVectorField& Us,
             const areaScalarField& h,
-	    const areaScalarField& he,
-	    const areaScalarField& rho,
+	        const areaScalarField& he,
+	        const areaScalarField& rho,
             const areaScalarField& pb,
             const areaVectorField& tau,
-	    const areaScalarField& Cv
+	        const areaScalarField& Cv
         );
 
 

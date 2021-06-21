@@ -1,5 +1,17 @@
 {
     "files.associations": {
-        "debrisfaSavageHutterFoam.C": "cpp"
+        "debrisfaSavageHutterFoam.C": "cpp",
+        "HormannAgathos.C": "cpp",
+        "newreleaseAreaMapping.C": "cpp",
+        "depositionModel.C": "cpp",
+        "depositionModelNew.C": "cpp",
+        "depositionOff.C": "cpp",
+        "Stoppingprofile.C": "cpp",
+        "entrainmentModel.C": "cpp",
+        "entrainmentModelNew.C": "cpp",
+        "entrainmentOff.C": "cpp",
+        "Erosionenergy.C": "cpp",
+        "Exponential.C": "cpp",
+        "RAMMS.C": "cpp"
     }
 }

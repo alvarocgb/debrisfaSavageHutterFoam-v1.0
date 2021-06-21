@@ -123,15 +123,15 @@ Foam::entrainmentModels::RAMMS::Sm() const
         {
             Sm_[i] = Zero;
         }
-	else
-	{
-	    emm_[i] = (mag(tau_[i])-tauc_.value())*dzdtau_.value(); 
+        else
+        {
+            emm_[i] = (mag(tau_[i])-tauc_.value())*dzdtau_.value(); 
 
-	    if (ett_[i] > emm_[i])
-	    {
-		Sm_[i] = 0;
-	    }
-	}
+            if (ett_[i] > emm_[i])
+            {
+                Sm_[i] = 0;
+            }
+        }
     }
 	
     return Sm_;

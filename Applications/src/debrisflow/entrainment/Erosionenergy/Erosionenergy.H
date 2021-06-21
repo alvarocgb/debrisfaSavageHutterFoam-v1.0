@@ -92,11 +92,11 @@ public:
             const dictionary& frictionProperties,
             const areaVectorField& Us,
             const areaScalarField& h,
-	    const areaScalarField& he,
-	    const areaScalarField& rho,
+	        const areaScalarField& he,
+	        const areaScalarField& rho,
             const areaScalarField& pb,
             const areaVectorField& tau,
-	    const areaScalarField& Cv
+	        const areaScalarField& Cv
         );
 
 

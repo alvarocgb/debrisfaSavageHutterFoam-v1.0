@@ -107,7 +107,6 @@ int main(int argc, char *argv[])
 
         dimensionedScalar fdefault = fieldsDict.lookupOrDefault<dimensionedScalar>("default", dimensionedScalar("default", f.dimensions(), -1e100));
 
-
         if (fdefault.value() > -1e99)
         {
             Info<< "Setting field " << fieldNames[fieldsI]
@@ -136,8 +135,8 @@ int main(int argc, char *argv[])
                     << "Entry " << regionInfo << " in boundary section is not a"
                     << " valid dictionary." << exit(FatalIOError);
             }
-            areaNames[areaI] = regionInfo.keyword();
 
+            areaNames[areaI] = regionInfo.keyword();
             dictionary areaDict = regionInfo.dict();
 
             word type;
@@ -145,7 +144,6 @@ int main(int argc, char *argv[])
             List<point2D> points;
 
             areaDict.lookup("type") >> type;
-
 
             if (type == "polygon")
             {
@@ -182,6 +180,7 @@ int main(int argc, char *argv[])
                 {
                     points[vI] = point2D(vertices[vI].x()+offset.x(), vertices[vI].y()+offset.y());
                 }
+
                 HormannAgathos polygon(points, 0.001);
 
                 forAll(c.internalField(), i)
@@ -362,7 +361,7 @@ int main(int argc, char *argv[])
         ),
         aMesh,
         dimArea,
-	aMesh.S(),
+	    aMesh.S(),
         patchFieldType	
     );
 
@@ -372,8 +371,8 @@ int main(int argc, char *argv[])
         (
             "faBoundary",
             runTime.constant(),
-	    "faMesh",
-	    mesh,
+	        "faMesh",
+	        mesh,
             IOobject::MUST_READ,
             IOobject::NO_WRITE
         ),
@@ -382,12 +381,12 @@ int main(int argc, char *argv[])
 
     forAll(faBoundaries, boundaryI)
     {
-	label length(faBoundaries[boundaryI].size());
-	
-	areaScalarField::Boundary boundaryA(A.boundaryFieldRef());
-	Field<scalar> field_A(length, 0.);
-	boundaryA[boundaryI] == field_A;
-	A.boundaryFieldRef() == boundaryA;
+        label length(faBoundaries[boundaryI].size());
+        
+        areaScalarField::Boundary boundaryA(A.boundaryFieldRef());
+        Field<scalar> field_A(length, 0.);
+        boundaryA[boundaryI] == field_A;
+        A.boundaryFieldRef() == boundaryA;
     }
 
     Info << nl << "Writing edge centres" << nl
@@ -443,20 +442,20 @@ int main(int argc, char *argv[])
 
     forAll(boundaryNames, boundaryI)
     {
-	const entry& boundaryInfo = boundaries[boundaryI];
+        const entry& boundaryInfo = boundaries[boundaryI];
 	
-	if (!boundaryInfo.isDict())
+	    if (!boundaryInfo.isDict())
         {
             FatalIOErrorIn("newreleaseAreaMapping.C", releaseFlow)
                 << "Entry " << boundaryInfo << " in boundaries section is not a"
                 << " valid dictionary." << exit(FatalIOError);
         }
 
-	boundaryNames[boundaryI] = boundaryInfo.keyword();
+        boundaryNames[boundaryI] = boundaryInfo.keyword();
 
-	const word boundaryName = boundaryNames[boundaryI];
+        const word boundaryName = boundaryNames[boundaryI];
 
-	if (faboundaryNames.find(boundaryName) == -1)
+	    if (faboundaryNames.find(boundaryName) == -1)
         {
             FatalIOErrorIn("newreleaseAreaMapping.C", releaseFlow)
                 << "Entry " << boundaryName << " in boundaries section is not a"
@@ -464,43 +463,43 @@ int main(int argc, char *argv[])
         }
 
         dictionary boundaryDict = boundaryInfo.dict();
-	List<vector> hidrogram;
-	boundaryDict.lookup("Q") >> hidrogram;
+        List<vector> hidrogram;
+        boundaryDict.lookup("Q") >> hidrogram;
 
         keyType name = boundaryNames[boundaryI];
 
-	dictionary subHidrogram(name);
+        dictionary subHidrogram(name);
 
-	List<scalar> times;
-	List<scalar> flows;
-	List<scalar> Cvs;
+        List<scalar> times;
+        List<scalar> flows;
+        List<scalar> Cvs;
 
-	forAll(hidrogram,I)
-	{
-		times.append(hidrogram [I].x());
-		flows.append(hidrogram [I].y());
-		Cvs.append(hidrogram [I].z());
-	}
+        forAll(hidrogram,I)
+        {
+            times.append(hidrogram [I].x());
+            flows.append(hidrogram [I].y());
+            Cvs.append(hidrogram [I].z());
+        }
 
-	label index = faBoundaries.findIndex(boundaryName);
+        label index = faBoundaries.findIndex(boundaryName);
 
-	const faPatch faPatchDict(faBoundaries[index],faBoundaries);	
-	const vectorField edgevectorlength = faPatchDict.edgeLengths();
-	const scalarField edgelength = faPatchDict.magEdgeLengths();
+        const faPatch faPatchDict(faBoundaries[index],faBoundaries);	
+        const vectorField edgevectorlength = faPatchDict.edgeLengths();
+        const scalarField edgelength = faPatchDict.magEdgeLengths();
 
-	scalar wide = 0;
+        scalar wide = 0;
 
-	forAll(edgelength, edgeI)
-	{
-		wide += edgelength[edgeI];		
-	};
+        forAll(edgelength, edgeI)
+        {
+            wide += edgelength[edgeI];		
+        };
 	
-	subHidrogram.add("wide", wide);
-	subHidrogram.add("times", times);
-	subHidrogram.add("flows", flows);
-	subHidrogram.add("Cvs", Cvs);
-	
-	Hidrograms.add(name,subHidrogram);	
+        subHidrogram.add("wide", wide);
+        subHidrogram.add("times", times);
+        subHidrogram.add("flows", flows);
+        subHidrogram.add("Cvs", Cvs);
+        
+        Hidrograms.add(name,subHidrogram);	
     };
 
     Info<< "Writing Hidrograms..." << endl;

@@ -65,7 +65,7 @@ void Foam::depositionModel::readdepositionZones()
     {
         Info<< "Reading deposition zones" << endl;
 
-	areaVectorField c = Us_.mesh().areaCentres();
+	    areaVectorField c = Us_.mesh().areaCentres();
 
         const PtrList<entry> regions
         (
