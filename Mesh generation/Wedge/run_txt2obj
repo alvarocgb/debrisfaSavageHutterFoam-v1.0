@@ -1,5 +1,7 @@
 #!/bin/sh
 
+#python3 txt2obj.py -i 'cuna_two_slopes_20y10.asc' -o 'cuna_two_slopes_20y10' -fillup -exactcopy -alphaminY '0.4, 0.6' 
+
 python3 txt2obj.py -i 'cuna_two_slopes_20y10.asc' -o 'cuna_two_slopes_20y10' -fillup -exactcopy -alphaminY '0.4, 0.6' 
 
 #------------------------------------------------------------------------------                                                                                                                                                                                                    

@@ -5,15 +5,14 @@ Description
     Creates a geometry formed by two slopes of different slope 
     with a smooth transition 
 Author
-    Alvaro Gonzalez Bilbao alvaro.gonzalez.bilbao@gmail.com
+    Álvaro González Bilbao alvaro.gonzalez.bilbao@gmail.com
 
-@version: 1.02 (22/03/21)
+@version: 1.03 (21/06/21)
 '''
 
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from mpl_toolkits.mplot3d import Axes3D
 import math
 
 class vector:
@@ -142,7 +141,7 @@ fi.write("NODATA_value       {}\n".format(NODATA_value))
 
 for j in range(nrows):
     for i in range(ncols):
-        fi.write(str(z[i,nrows-j-1])+" ")
+        fi.write(str(round(z[i,nrows-j-1],3))+" ")
     fi.write("\n")
 fi.close()
 
@@ -199,6 +198,7 @@ for i in range(len(lp1)):
 tp1 = []
 tp2 = []
 
+#Transversal profiles of lp1 definition
 for i in range(len(lp1)-2):
     v1 = vector(lp1[i,0], lp1[i,1], 0)
     v2 = vector(lp1[i+1,0], lp1[i+1,1], 0)
@@ -226,6 +226,7 @@ for i in range(len(lp1)-2):
   
     tp1.append([vp1, vp2])
 
+#Transversal profiles of lp2 definition
 for i in range(len(lp2)-2):
     v1 = vector(lp2[i,0], lp2[i,1], 0)
     v2 = vector(lp2[i+1,0], lp2[i+1,1], 0)
@@ -361,7 +362,15 @@ fi.close()
 
 ##########################################  Plots  #################################################################
 
-def plot():
+#Plot z in a colormap
+def plot_z():
+    fig = plt.figure(figsize=(9, 3))
+    plt.contourf(y,x,z,cmap=plt.get_cmap('hot'))
+    plt.colorbar()
+    plt.show()
+
+#Plot longitudinal and transversal profiles
+def plot_tps():
     rectangle = np.zeros((5,2))
 
     rectangle[0,0] = 0 ;  rectangle[0,1] = 0
@@ -389,14 +398,13 @@ def plot():
     plt.plot(rectangle[:,0], rectangle[:,1])
     plt.plot(ellipse[:,0], ellipse[:,1])
     plt.plot(new_ellipse[:,0], new_ellipse[:,1])
-    plt.plot(lp1[:,0], lp1[:,1], label = 'lp1')
-    plt.plot(lp2[:,0], lp2[:,1], label = 'lp2')
+    plt.plot(lp1[:,0], lp1[:,1])
+    plt.plot(lp2[:,0], lp2[:,1])
     for i in range(len(list_tp1)):
         vertexes = list_tp1[i]
         plt.plot([vertexes[0].x, vertexes[-1].x] ,[vertexes[0].y, vertexes[-1].y])
     for i in range(len(list_tp2)):
         vertexes = list_tp2[i]
         plt.plot([vertexes[0].x, vertexes[-1].x] ,[vertexes[0].y, vertexes[-1].y])
-    plt.legend(handler_map= {})
     plt.grid()
     plt.show()

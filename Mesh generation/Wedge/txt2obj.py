@@ -24,7 +24,7 @@ Author
 Modified by
     Álvaro González Bilbao alvaro.gonzalez.bilbao@gmail.com
     
-@version: 1.03 (25/03/21)
+@version: 1.04 (21/06/21)
 '''
 
 # these 3 lines make python2 compatible with python3
@@ -40,6 +40,8 @@ import sys
 from time import gmtime, strftime
 from operator import itemgetter
 import math
+
+##########################################  Definitions  ##############################################################
 
 class vector:
     def __init__(self,x=0, y=0, z=0):
@@ -173,14 +175,10 @@ def get_boundary_points(list, xyloc):
         
     return new_zone
 
+##########################################  Main function  #############################################################
 
 def main(argv):
     
-    infile = ''
-    outfile = ''
-    xres = 100
-    yres = 100
-
     parser = argparse.ArgumentParser(description='Taking a Raster-File and creating a OBJ-File')
 
     parser.add_argument('-i', type=str, help='input filename')
@@ -206,13 +204,17 @@ def main(argv):
     parser.add_argument('-zmax', type=float, help='z maximum value used for the creation of the finite volume mesh', default=0)
     args = parser.parse_args()
         
-    infile = args.i
-    outfile = args.o
     if args.xres is not None:
         xres = args.xres
+    else:
+        xres = 100
     if args.yres is not None:
         yres = args.yres
-    
+    else:
+        yres = 100
+
+    infile  = args.i
+    outfile = args.o   
     p1in = args.p1
     p2in = args.p2 
     p3in = args.p3 
@@ -221,11 +223,13 @@ def main(argv):
     exactcopy = args.exactcopy
     zmax = args.zmax
 
+    #This is used to separate a patch in subpatches where different boundary conditions may be applied
     alphamaxY = get_alpha_list(args.alphamaxY, 'alphamaxY')
     alphaminY = get_alpha_list(args.alphaminY, 'alphaminY')
     alphamaxX = get_alpha_list(args.alphamaxX, 'alphamaxX')
     alphaminX = get_alpha_list(args.alphaminX, 'alphaminX')
 
+    #This is used when the user wants to create a mesh with a shape different to the one of the original raster-file
     maxY = get_zone(args.maxY,'x',args.offsetx, args.offsety)
     minY = get_zone(args.minY,'x',args.offsetx, args.offsety)
     maxX = get_zone(args.maxX,'y',args.offsetx, args.offsety)
@@ -276,6 +280,7 @@ def main(argv):
         xres = ncols
         yres = nrows
 
+    #It may be the case that some of the z-values in the raster are wrong, in which case they are replaced for valid values.
     if fillup:
         fn = True 
         k = 1
@@ -339,6 +344,8 @@ def main(argv):
     if p4in is not None:
         p4 = p4in+np.array([args.offsetx, args.offsety])
 
+    #It may be the case that the points introduced in maxY, minY, maxX or minX do not be completely contained in the original raster limits,
+    #in which case they are modified to fulfill that condition.
     check_zone(maxY, minx, maxx, miny, maxy)
     check_zone(minY, minx, maxx, miny, maxy)
     check_zone(maxX, minx, maxx, miny, maxy)
@@ -355,7 +362,9 @@ def main(argv):
     print("Surface = {}".format(s))
     pm = [0.5*pe[0,0]+0.5*pe[2,0], 0.5*pe[0,1]+0.5*pe[2,1]]
     print("Point inside = ({},{},{})".format(pm[0], pm[1], 10+f(pm[0], pm[1])))
-            
+
+    #A zmax value is required for the top of the finite volume mesh. If the z-coordinate of the top is lower than the terrain coordinate
+    #in a particular point, then pMesh will not be capable of creating the mesh.     
     if zmax == 0:
         zmax = (z.max()-z.min())*1.1
 
@@ -363,11 +372,12 @@ def main(argv):
             f(p2[0], p2[1])+zmax, 
             f(p3[0], p3[1])+zmax, 
             f(p4[0], p4[1])+zmax]
-    f2 = interpolate.interp2d([p1[0], p2[0], p3[0], p4[0]],[p1[1], p2[1], p3[1], p4[1]], ztop) #f2 is a function, not a matrix
+    f2 = interpolate.interp2d([p1[0], p2[0], p3[0], p4[0]],[p1[1], p2[1], p3[1], p4[1]], ztop) #f2 is a function that interpolates the top patch
 
-    
-    if exactcopy:        
-        if p1in is not None or p2in is not None or p3in is not None or p4in is not None:            
+##########################################  Mesh creation  #############################################################
+  
+    if exactcopy: #The grid of the original raster-file is used   
+        if p1in is not None or p2in is not None or p3in is not None or p4in is not None:  #Only a fraction of the raster area is used          
             g = lambda p: [int((p[0]-xllcenter)/cs),int((yllcenter-p[1])/cs+nrows)]
             i1,j1 = g(p1)
             i2,j2 = g(p2)
@@ -389,9 +399,9 @@ def main(argv):
             yy = [float(yll+(yres-i-1)*cs) for i in range(yres)] 
             yglob, xglob = np.meshgrid(yy, xx) 
         
-        else:  
-            yglob, xglob = np.meshgrid(y, x) #np.meshgrid creates a matrix for yglob and another for xglob
-    else:
+        else: #The whole raster area is used
+            yglob, xglob = np.meshgrid(y, x)
+    else: #A different resolution is used with different limits
         if p1in is not None or p2in is not None or p3in is not None or p4in is not None:
             xloc = np.linspace(-1, 1, xres)
             yloc = np.linspace(-1, 1, yres)
@@ -407,8 +417,9 @@ def main(argv):
                     p = getX(np.array([xxloc[i][j], yyloc[i][j]]), pe)
                     xglob[-1].append(p[0])
                     yglob[-1].append(p[1])
-                    
-        elif (maxY != [] or minY != [] or maxX != [] or minX != []):
+
+        #The mesh will not be a quadrilateral, being its shape defined by the points introduced in maxY, minY, maxX and minX           
+        elif (maxY != [] or minY != [] or maxX != [] or minX != []): 
             xloc = np.linspace(0, 1, xres) 
             yloc = np.linspace(0, 1, yres)
                          
@@ -432,10 +443,14 @@ def main(argv):
                     p /= 1/(xloc[i]**2+10**-9)+1/((1-xloc[i])**2+10**-9)+1/(yloc[j]**2+10**-9)+1/((1-yloc[j])**2+10**-9)
                     xglob[-1].append(p.x)
                     yglob[-1].append(p.y)
-                               
+
+
+###########################################  Zones writing  #############################################################
+
     print("xres = {}".format(xres))
     print("yres = {}".format(yres))
 
+    #File is written in the current directory
     stl = open(outfile+'.obj', 'w')
     stl.write('# Wavefront OBJ file written '+strftime("%Y-%m-%d %H:%M:%S", gmtime())+'\n')
     stl.write("\n")
@@ -534,6 +549,8 @@ def main(argv):
         face_number += 1
         stl.write('#   {}  minY  (nFaces: {})\n'.format(face_number,nfaces_y))
 
+###########################################  Points writing  #############################################################
+
     stl.write("\n")
     stl.write('# <points count="{}"> \n'.format(nPoints))        
     print("writing vertexes...")
@@ -552,7 +569,9 @@ def main(argv):
             stl.write("v {} {} {} \n".format(round(xglob[i][j],3), round(yglob[i][j],3),round(float(f2(xglob[i][j], yglob[i][j])),2)))
     stl.write("# </points>\n")
     stl.write("\n")
-    
+
+###########################################  Faces writing  #############################################################
+
     print("writing terrain faces...")
     stl.write('# <faces count="{}">\n'.format(nFaces))
     stl.write('g terrain\n')
@@ -725,6 +744,8 @@ def main(argv):
 
     stl.write('# </faces>')  
     stl.close()
+
+#########################################################################################################################
 
 if __name__ == "__main__":
    main(sys.argv[1:])
