@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Nov 19 12:48:52 2019
 
-@author: Alvaro Gonzalez Bilbao
-@function: used to create a channel with two slopes with an ellipsoid as obstacle
+'''
+Description
+    Creates a geometry formed by two slopes of different slope 
+    with a smooth transition 
+Author
+    Alvaro Gonzalez Bilbao alvaro.gonzalez.bilbao@gmail.com
+
 @version: 1.02 (22/03/21)
-"""
+'''
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,72 +17,76 @@ from mpl_toolkits.mplot3d import Axes3D
 import math
 
 class vector:
-        def __init__(self,x=0, y=0, z=0):
-                self.x= float(x)
-                self.y= float(y)
-                self.z= float(z)
+    def __init__(self,x=0, y=0, z=0):
+            self.x = float(x)
+            self.y = float(y)
+            self.z = float(z)
+            
+    def List(self):
+            return [self.x,self.y,self.z]
                 
-        def List(self):
-                return [self.x,self.y,self.z]
-                    
-        def mag(self):
-                return round(math.sqrt(self.x**2+self.y**2+self.z**2),6)
-            
-        def __add__(self,other):
-                return vector(self.x+other.x,self.y+other.y,self.z+other.z)
-            
-        def __sub__(self,other):
-                return vector(self.x-other.x,self.y-other.y,self.z-other.z)
-            
-        def __mul__(self,alpha):
-                return vector(self.x*alpha,self.y*alpha,self.z*alpha)
-            
-        def __truediv__(self,alpha):
-                return vector(self.x/alpha,self.y/alpha,self.z/alpha)
+    def mag(self):
+            return round(math.sqrt(self.x**2+self.y**2+self.z**2),6)
+        
+    def __add__(self,other):
+            return vector(self.x+other.x,self.y+other.y,self.z+other.z)
+        
+    def __sub__(self,other):
+            return vector(self.x-other.x,self.y-other.y,self.z-other.z)
+        
+    def __mul__(self,alpha):
+            return vector(self.x*alpha,self.y*alpha,self.z*alpha)
+        
+    def __truediv__(self,alpha):
+            return vector(self.x/alpha,self.y/alpha,self.z/alpha)
 
-        def __eq__(self, other):
-                if self.x == other.x and self.y == other.y and self.z == other.z:
-                    return True
-                else:
-                    return False
-          
-        def angle(self):              
-            if self.x != 0 and self.y != 0:
-                if self.x > 0 and self.y > 0:
-                    angle = math.atan(self.y/self.x)
-                elif self.x < 0:
-                    angle = math.pi+math.atan(self.y/self.x)
-                else:
-                    angle = 2*math.pi+math.atan(self.y/self.x)
-            elif self.x == 0:
-                if self.y > 0:
-                    angle = math.pi/2
-                else:
-                    angle = 3*math.pi/2
+    def __eq__(self, other):
+            if self.x == other.x and self.y == other.y and self.z == other.z:
+                return True
             else:
-                if self.x > 0:
-                    angle = 0
-                else:
-                    angle = math.pi                
-            return angle
-    
-cellsize = 2.5
-xllcorner = 0
-yllcorner = 0
-NODATA_value = -9999
-filename = 'cuna_two_slopes_20y10.asc'
+                return False
+        
+    def angle(self):              
+        if self.x != 0 and self.y != 0:
+            if self.x > 0 and self.y > 0:
+                angle = math.atan(self.y/self.x)
+            elif self.x < 0:
+                angle = math.pi+math.atan(self.y/self.x)
+            else:
+                angle = 2*math.pi+math.atan(self.y/self.x)
+        elif self.x == 0:
+            if self.y > 0:
+                angle = math.pi/2
+            else:
+                angle = 3*math.pi/2
+        else:
+            if self.x > 0:
+                angle = 0
+            else:
+                angle = math.pi                
+        return angle
 
-alpha1 = 10
-alpha2 = 20
-Lx = 200
-Ly = 1000
-ym = 250
-A1 = 50
-A2 = 20
-rx = 15
-ry = 100
-exc_x = 1.05
-exc_y = 1.4
+##########################################  Inputs  ################################################################
+
+cellsize = 2.5 #cell size of the raster. All the other values must have the same length units than cellsize.
+xllcorner = 0 #x-coordinate of the lower left cell
+yllcorner = 0 #y-coordinate of the lower left cell
+NODATA_value = -9999 #no data_value defined inside the raster-file
+filename = 'cuna_two_slopes_20y10.asc' #name of the file where the geometric information will be saved
+
+alpha1 = 10 #lowest section slope. Value must be introduced in sexagesimal degrees
+alpha2 = 20 #highest section slope. Value must be introduced in sexagesimal degrees
+Lx = 200 #wide of the geometry
+Ly = 1000 #large of the geometry
+ym = 250 #y-coordinate position of the slope change section
+A1 = 50 #Coefficient that controls the shape of the transversal section to the flow.
+A2 = 20 #z-radius of the ellipse
+rx = 15 #x-radius of the ellipse
+ry = 100 #y-radius of the ellipse
+exc_x = 1.05 #ellipse center-geometry center ratio. exc_x = 1.0 would mean that the x-coordinate of the ellipse would be Lx/2
+exc_y = 1.40 #ellipse center-geometry center ratio. exc_y = 1.0 would mean that the y-coordinate of the ellipse would be Ly/2
+
+#######################################  Raster creation  ##########################################################
 
 ncols = int(Lx/cellsize+1)
 nrows = int(Ly/cellsize+1)
@@ -96,9 +102,9 @@ alpha2 = alpha2*np.pi/180
 l = 1/2*ym/np.cos(alpha1)
 L = ym/2*math.sqrt((1+np.cos(alpha2)/np.cos(alpha1))**2+np.tan(alpha1)**2*(1+np.sin(alpha2)/np.sin(alpha1))**2)
 gamma = (alpha2-alpha1)/2
-r = L/2*1/math.sin(gamma)
-yc = ym/2-r*np.sin(alpha1)
-zc = ym/2*np.tan(alpha1)+r*np.cos(alpha1)
+r   = L/2*1/math.sin(gamma)
+yc  = ym/2-r*np.sin(alpha1)
+zc  = ym/2*np.tan(alpha1)+r*np.cos(alpha1)
 yp1 = ym/2
 yp3 = ym+l*np.cos(alpha2)
 
@@ -123,19 +129,7 @@ for j in range(nrows):
         if (y[j]-Ly/2*exc_y)**2/(ry)**2+(x[i]-Lx/2*exc_x)**2/(rx)**2<=1:
             z[i,j] += A2*(1-((y[j]-Ly/2*exc_y)**2/(ry)**2+(x[i]-Lx/2*exc_x)**2/(rx)**2))
 
-#figure1 = plt.figure()
-#plt.plot(y,z[0,:])
-#
-#figure2 = plt.figure()
-#plt.plot(x,z[:,0])
-#
-#figure3 = plt.figure()
-#plt.plot(x,z[:,nrows-1])
-#
-#figure4 = plt.figure()
-#plt.plot(x,z[:,index])
-
-path = os.getcwd()
+path = os.getcwd() #It saves the raster file in the current directory.
 path += '/'+filename
 fi = open(path, 'w')
 
@@ -152,43 +146,41 @@ for j in range(nrows):
     fi.write("\n")
 fi.close()
 
-#fig = plt.figure(figsize=(9, 3))
-#plt.contourf(y,x,z,cmap=plt.get_cmap('hot'))
-#plt.colorbar()
-#plt.show()
+###############################  Transversal and longitudinal profiles  ############################################
 
-rectangle = np.zeros((5,2))
+'''
+Even though defining the raster-file is enough to run an OpenFOAM simulation, there are other two files which creation
+is necessary for the postprocessing procedure. This files are the longitudinal profile of the course that the flow is 
+expected to follow, and the transversal profiles defined by that longitudinal profile. In most of the applications of
+the debrisfaSavageHutterFoam it is not necessary to create a file for the transversal profile, since it can be generated 
+by the postprocessing code. However, for this geometry, is it better to create the transversal profile as a separate 
+file, since it allow us to have more control about its definition.
+'''
 
-rectangle[0,0] = 0 ; rectangle[0,1] = 0
-rectangle[1,0] = Lx ; rectangle[1,1] = 0
-rectangle[2,0] = Lx ; rectangle[2,1] = Ly
-rectangle[3,0] = 0 ; rectangle[3,1] = Ly
-rectangle[4,0] = rectangle[0,0] ; rectangle[4,1] = rectangle[0,1]
+deltalp = 2 #Distance between two transversal profiles
+dist1 = 60 #Transversal profile wide for the first part of the channel. This applies to the sections located before the ellipse
+dist2 = 120 #Transversal profile wide for the second part of the channel. This applies to the sections located at both sides of the ellipse
+dist3 = 80 #Transversal profile wide for the third part of the channel. This applies to the sections located downward the ellipse
 
-new_rx = 1.5*rx
-new_ry = 1.1*ry
+'''
+The dist1, dist2 and dist3 values must be defined for every geometry in particular. If small values are used, when calculating
+the flow discharge through the transversal profiles wrong values may be obtained. If large values are selected instead, the
+weight of the files generated in the postprocess may be bigger than what is really necessary, since the dependent variables 
+are interpolated along every transversal profile.
+'''
 
-deltatheta = 2
-ntheta = int(360/deltatheta+1)
-theta = [float(0+i*deltatheta*math.pi/180) for i in range(ntheta)]
-
-ellipse = np.zeros((len(theta),2))
-for i in range(len(ellipse)):
-    ellipse[i,0] = Lx/2*exc_x+rx*math.cos(theta[i])
-    ellipse[i,1] = Ly/2*exc_y+ry*math.sin(theta[i])
-
-new_ellipse = np.zeros((len(theta),2))
-for i in range(len(new_ellipse)):
-    new_ellipse[i,0] = Lx/2*exc_x+new_rx*math.cos(theta[i])
-    new_ellipse[i,1] = Ly/2*exc_y+new_ry*math.sin(theta[i])
-
-maxy = Ly/2*exc_y+new_ry*math.sin(math.pi/2)
-miny = Ly/2*exc_y+new_ry*math.sin(-math.pi/2)
-
-deltalp = 2
+#Two longitudinal profiles are generated, since the inclusion of the ellipse generates a division of the flow in two branches.
 lp1 = np.zeros((int(Ly/deltalp+1),2))
 lp2 = np.zeros((int(Ly/deltalp+1),2))
 
+#Radius of the ellipse that defines the approximate position of the center of each branch.
+new_rx = 1.5*rx
+new_ry = 1.1*ry
+
+maxy = Ly/2*exc_y+new_ry*math.sin(math.pi/2) #Defines the y-coordinate of the change between dist1 and dist2
+miny = Ly/2*exc_y-new_ry*math.sin(math.pi/2) #Defines the y-coordinate of the change between dist2 and dist3
+
+#Longitudinal profiles definition
 for i in range(len(lp1)):
     lp1[i,1] = Ly-i*deltalp
     lp2[i,1] = lp1[i,1]
@@ -204,10 +196,6 @@ for i in range(len(lp1)):
         if lp2[i,0]<Lx/2:
             lp2[i,0] = Lx/2
             
-dist1 = 60
-dist2 = 120
-dist3 = 80
-
 tp1 = []
 tp2 = []
 
@@ -218,8 +206,10 @@ for i in range(len(lp1)-2):
     d1 = v1-v2
     d2 = v3-v2
     theta = d2.angle()-d1.angle()
-    if theta < 0: theta += 2*math.pi
-    elif theta >= 2*math.pi: theta -= 2*math.pi
+    if theta < 0:
+        theta += 2*math.pi
+    elif theta >= 2*math.pi:
+        theta -= 2*math.pi
     theta = theta/2+d2.angle()
 
     if v2.y > maxy:
@@ -243,8 +233,10 @@ for i in range(len(lp2)-2):
     d1 = v1-v2
     d2 = v3-v2
     theta = d2.angle()-d1.angle()
-    if theta < 0: theta += 2*math.pi
-    elif theta >= 2*math.pi: theta -= 2*math.pi
+    if theta < 0:
+        theta += 2*math.pi
+    elif theta >= 2*math.pi:
+        theta -= 2*math.pi
     theta = theta/2+d2.angle()
 
     if v2.y > maxy:
@@ -266,6 +258,12 @@ list_lp2 = [[lp2[0,0],lp2[0,1]]]
 list_tp1 = []
 list_tp2 = []
 
+'''
+The definition of transversal profiles inmediatly around the bifurcation and junction zones of the flux is 
+complicated and not really useful. In the following lines those transversal profiles are deleted. The definition
+of which transversal profiles must be eliminated and which ones not is completely arbitrary.
+'''
+
 for i in range(len(tp1)):
     if lp1[i+1,1] > maxy+15 or (lp1[i+1,1] < maxy-15 and lp1[i+1,1] > miny+30) or lp1[i+1,1] < miny-20:
         list_lp1.append([lp1[i+1,0],lp1[i+1,1]])
@@ -285,7 +283,7 @@ for i in range(len(lp1)):
     lp2[i,0] = list_lp2[i][0]
     lp2[i,1] = list_lp2[i][1]
 
-
+# Both longitudinal profiles are written in the current directory
 path = os.getcwd()
 filename = 'lp_wedge_two_slopes_20y10.dat'
 path += '/'+filename
@@ -309,6 +307,7 @@ for i in range(2):
 fi.write("}"+"\n")
 fi.close()
 
+# Transversal profiles of both longitudinal profiles are written in the current directory
 path = os.getcwd()
 filename = 'tp_wedge_two_slopes_20y10.dat'
 path += '/'+filename
@@ -360,17 +359,44 @@ fi.write("}"+"\n")
 fi.write("}"+"\n")
 fi.close()
 
-#fig = plt.figure(figsize=(8, 20))
-#plt.plot(rectangle[:,0], rectangle[:,1])
-#plt.plot(ellipse[:,0], ellipse[:,1])
-#plt.plot(new_ellipse[:,0], new_ellipse[:,1])
-#plt.plot(lp1[:,0], lp1[:,1])
-#plt.plot(lp2[:,0], lp2[:,1])
-#for i in range(len(list_tp1)):
-#    vertexes = list_tp1[i]
-#    plt.plot([vertexes[0].x, vertexes[-1].x] ,[vertexes[0].y, vertexes[-1].y])
-#for i in range(len(list_tp2)):
-#    vertexes = list_tp2[i]
-#    plt.plot([vertexes[0].x, vertexes[-1].x] ,[vertexes[0].y, vertexes[-1].y])
-#plt.grid()
-#plt.show()
+##########################################  Plots  #################################################################
+
+def plot():
+    rectangle = np.zeros((5,2))
+
+    rectangle[0,0] = 0 ;  rectangle[0,1] = 0
+    rectangle[1,0] = Lx ; rectangle[1,1] = 0
+    rectangle[2,0] = Lx ; rectangle[2,1] = Ly
+    rectangle[3,0] = 0 ;  rectangle[3,1] = Ly
+    rectangle[4,0] = rectangle[0,0]
+    rectangle[4,1] = rectangle[0,1]
+
+    deltatheta = 2
+    ntheta = int(360/deltatheta+1)
+    theta = [float(0+i*deltatheta*math.pi/180) for i in range(ntheta)]
+
+    ellipse = np.zeros((len(theta),2))
+    for i in range(len(ellipse)):
+        ellipse[i,0] = Lx/2*exc_x+rx*math.cos(theta[i])
+        ellipse[i,1] = Ly/2*exc_y+ry*math.sin(theta[i])
+
+    new_ellipse = np.zeros((len(theta),2))
+    for i in range(len(new_ellipse)):
+        new_ellipse[i,0] = Lx/2*exc_x+new_rx*math.cos(theta[i])
+        new_ellipse[i,1] = Ly/2*exc_y+new_ry*math.sin(theta[i])
+
+    fig = plt.figure(figsize=(8, 20))
+    plt.plot(rectangle[:,0], rectangle[:,1])
+    plt.plot(ellipse[:,0], ellipse[:,1])
+    plt.plot(new_ellipse[:,0], new_ellipse[:,1])
+    plt.plot(lp1[:,0], lp1[:,1], label = 'lp1')
+    plt.plot(lp2[:,0], lp2[:,1], label = 'lp2')
+    for i in range(len(list_tp1)):
+        vertexes = list_tp1[i]
+        plt.plot([vertexes[0].x, vertexes[-1].x] ,[vertexes[0].y, vertexes[-1].y])
+    for i in range(len(list_tp2)):
+        vertexes = list_tp2[i]
+        plt.plot([vertexes[0].x, vertexes[-1].x] ,[vertexes[0].y, vertexes[-1].y])
+    plt.legend(handler_map= {})
+    plt.grid()
+    plt.show()

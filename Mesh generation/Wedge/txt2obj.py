@@ -17,10 +17,12 @@ License
     You should have received a copy of the GNU General Public License
     along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
 
+Description
+    Code used to create an OBJ-file from a Raster-file
 Author
     Matthias Rauter matthias.rauter@uibk.ac.at
 Modified by
-    Alvaro Gonzalez Bilbao alvaro.gonzalez.b@ug.uchile.cl
+    Álvaro González Bilbao alvaro.gonzalez.bilbao@gmail.com
     
 @version: 1.03 (25/03/21)
 '''
@@ -40,40 +42,40 @@ from operator import itemgetter
 import math
 
 class vector:
-        def __init__(self,x=0, y=0, z=0):
-                self.x= float(x)
-                self.y= float(y)
-                self.z= float(z)
+    def __init__(self,x=0, y=0, z=0):
+            self.x= float(x)
+            self.y= float(y)
+            self.z= float(z)
+            
+    def List(self):
+            return [self.x,self.y,self.z]
                 
-        def List(self):
-                return [self.x,self.y,self.z]
-                    
-        def mag(self):
-                return round(math.sqrt(self.x**2+self.y**2+self.z**2),6)
-            
-        def __add__(self,other):
-                return vector(self.x+other.x,self.y+other.y,self.z+other.z)
-            
-        def __sub__(self,other):
-                return vector(self.x-other.x,self.y-other.y,self.z-other.z)
-            
-        def __mul__(self,alpha):
-                if type(self) == type(alpha):
-                    return self.x*alpha.x+self.y*alpha.y+self.z*alpha.z   
-                else:
-                    return vector(self.x*alpha,self.y*alpha,self.z*alpha)
-            
-        def __truediv__(self,alpha):
-                return vector(self.x/alpha,self.y/alpha,self.z/alpha)
+    def mag(self):
+            return round(math.sqrt(self.x**2+self.y**2+self.z**2),6)
+        
+    def __add__(self,other):
+            return vector(self.x+other.x,self.y+other.y,self.z+other.z)
+        
+    def __sub__(self,other):
+            return vector(self.x-other.x,self.y-other.y,self.z-other.z)
+        
+    def __mul__(self,alpha):
+            if type(self) == type(alpha):
+                return self.x*alpha.x+self.y*alpha.y+self.z*alpha.z   
+            else:
+                return vector(self.x*alpha,self.y*alpha,self.z*alpha)
+        
+    def __truediv__(self,alpha):
+            return vector(self.x/alpha,self.y/alpha,self.z/alpha)
 
-        def __eq__(self, other):
-                if self.x == other.x and self.y == other.y and self.z == other.z:
-                    return True
-                else:
-                    return False
+    def __eq__(self, other):
+            if self.x == other.x and self.y == other.y and self.z == other.z:
+                return True
+            else:
+                return False
           
 def distxy(v1,v2):
-        return round(math.sqrt((v1.x-v2.x)**2+(v1.y-v2.y)**2),6)
+    return round(math.sqrt((v1.x-v2.x)**2+(v1.y-v2.y)**2),6)
 
 def N(xis):
     return 1/4.*(1+xis[0])*(1+xis[1])
@@ -84,11 +86,9 @@ def getX(xi, x0):
     xi2 = np.array([-1, 1])
     xi3 = np.array([-1, -1])
     
-    #xi is a R2 vector. xi*xi0 = (xi[0]*xi0[0],xi[1]*xi0[1]) in R2 #x0 is a (4,2) matrix
     xg = x0[0]*N(xi*xi0)+x0[1]*N(xi*xi1)+x0[2]*N(xi*xi2)+x0[3]*N(xi*xi3)
-    return xg #xg is a R2 vector, since x0[0],x0[1] are R2 vectors
+    return xg
 
-# pattern is a string saved as: \-*[0-9]+\.*[0-9]*
 pattern = r"""      
     \-*[0-9]+\.*[0-9]*
     """
@@ -98,7 +98,7 @@ rx = re.compile(pattern, re.VERBOSE)
 def coords(s):
     try:        
         s = s[1:len(s)-1]
-        x, y = map(float, s.split(',')) #map applies a function (float) to an iterable
+        x, y = map(float, s.split(','))
         return x, y
     except:
         raise argparse.ArgumentTypeError("Coordinates must be 'x,y'")
@@ -145,33 +145,33 @@ def check_zone(zone, minx, maxx, miny, maxy):
             zone[i] = vector(zone[i][0], zone[i][1], 0)
 
 def get_boundary_points(list, xyloc):
-        new_zone = []
-        if len(list) == 2:
-            for i in range(len(xyloc)):
-                new_zone.append(list[0]+(list[1]-list[0])*xyloc[i])
-        else:
-            dist = 0
-            for i in range(len(list)-1):
-                dist += distxy(list[i], list[i+1])
-                
-            index_list = [0]
-            new_dist = 0
-            for i in range(len(list)-1):
-                new_dist += distxy(list[i], list[i+1])
-                index_list.append(new_dist/dist)
-
-            last_index = 0
-            last_xloc = 0
-            for i in range(len(xyloc)-1):
-                coeff = 1/(index_list[last_index+1]-index_list[last_index])
-                new_zone.append(list[last_index]+(list[last_index+1]-list[last_index])*(xyloc[i]-last_xloc)*coeff)
-                if xyloc[i] < index_list[last_index+1] and xyloc[i+1] >= index_list[last_index+1]:
-                    last_xloc = xyloc[i+1]
-                    last_index += 1
-                    
-            new_zone.append(list[-1])
+    new_zone = []
+    if len(list) == 2:
+        for i in range(len(xyloc)):
+            new_zone.append(list[0]+(list[1]-list[0])*xyloc[i])
+    else:
+        dist = 0
+        for i in range(len(list)-1):
+            dist += distxy(list[i], list[i+1])
             
-        return new_zone
+        index_list = [0]
+        new_dist = 0
+        for i in range(len(list)-1):
+            new_dist += distxy(list[i], list[i+1])
+            index_list.append(new_dist/dist)
+
+        last_index = 0
+        last_xloc = 0
+        for i in range(len(xyloc)-1):
+            coeff = 1/(index_list[last_index+1]-index_list[last_index])
+            new_zone.append(list[last_index]+(list[last_index+1]-list[last_index])*(xyloc[i]-last_xloc)*coeff)
+            if xyloc[i] < index_list[last_index+1] and xyloc[i+1] >= index_list[last_index+1]:
+                last_xloc = xyloc[i+1]
+                last_index += 1
+                
+        new_zone.append(list[-1])
+        
+    return new_zone
 
 
 def main(argv):
@@ -251,7 +251,7 @@ def main(argv):
     
     print("moving by ({}, {})".format(args.offsetx, args.offsety))
     
-    file = open(infile, 'r')
+    file  = open(infile, 'r')
     ncols = int(rx.findall(file.readline())[0]) 
     nrows = int(rx.findall(file.readline())[0])
     xllcenter = float(rx.findall(file.readline())[0])
@@ -281,7 +281,7 @@ def main(argv):
         k = 1
         while fn and k < 10:
             print("filling up ({}) ...".format(k)); k = k+1
-            fn = False #if in an iteration there is no more filling up, then fn = False and then the iteration stops
+            fn = False #if in an iteration there is no more filling up, then fn = False and the iteration stops
             fixed = 0
             unfixed = 0
             if k%2 == 0: #when k is an even number only the central values of the matrix are filled
@@ -304,8 +304,10 @@ def main(argv):
                             if z[i,j-1] > 0: val = val+z[i,j-1]; n = n+1
                         if j < z.shape[1]-1: 
                             if z[i,j+1] > 0: val = val+z[i,j+1]; n = n+1
-                        if n>0: z[i,j] = val/n; fixed = fixed+1
-                        else: unfixed = unfixed+1
+                        if n>0:
+                            z[i,j] = val/n; fixed = fixed+1
+                        else:
+                            unfixed = unfixed+1
                         fn = True
             print("...checked: {}, fixed: {}, unfixed: {}".format(jj,fixed,unfixed))       
        
@@ -534,7 +536,7 @@ def main(argv):
 
     stl.write("\n")
     stl.write('# <points count="{}"> \n'.format(nPoints))        
-    print("writing vertexes...");
+    print("writing vertexes...")
     
     l = 0
     ls = []
@@ -551,7 +553,7 @@ def main(argv):
     stl.write("# </points>\n")
     stl.write("\n")
     
-    print("writing terrain faces...");
+    print("writing terrain faces...")
     stl.write('# <faces count="{}">\n'.format(nFaces))
     stl.write('g terrain\n')
     
@@ -564,44 +566,44 @@ def main(argv):
                 stl.write("f {0} {2} {1} \n".format(ls[i][j][0]+1,ls[i+1][j][0]+1,ls[i][j+1][0]+1))
                 stl.write("f {0} {2} {1} \n".format(ls[i][j+1][0]+1,ls[i+1][j][0]+1,ls[i+1][j+1][0]+1))
     
-    print("writing g maxZ faces...");
+    print("writing g maxZ faces...")
     stl.write('g maxZ\n')
     
     for i in range(xres-1):
         for j in range(yres-1):
-                stl.write("f {0} {2} {1} \n".format(ls[i][j][1]+1,ls[i+1][j][1]+1,ls[i+1][j+1][1]+1))
-                stl.write("f {0} {2} {1} \n".format(ls[i][j][1]+1,ls[i+1][j+1][1]+1,ls[i][j+1][1]+1))
+            stl.write("f {0} {2} {1} \n".format(ls[i][j][1]+1,ls[i+1][j][1]+1,ls[i+1][j+1][1]+1))
+            stl.write("f {0} {2} {1} \n".format(ls[i][j][1]+1,ls[i+1][j+1][1]+1,ls[i][j+1][1]+1))
 
     if alphamaxX is not None:
         for k in range(int(len(alphamaxX)/2)):
-                face_name = 'maxX'+str(k+1)
-                print("writing g "+ face_name + " faces...");
-                stl.write('g {}\n'.format(face_name))
-        
-                for j in range(yres-1):
-                        if j/(yres-1)>=alphamaxX[2*k] and j/(yres-1)<alphamaxX[2*k+1] :
-                            i = xres-1
-                            stl.write("f {0} {2} {1} \n".format(ls[i][j][0]+1,ls[i][j+1][0]+1,ls[i][j][1]+1))
-                            stl.write("f {0} {2} {1} \n".format(ls[i][j][1]+1,ls[i][j+1][0]+1,ls[i][j+1][1]+1))
+            face_name = 'maxX'+str(k+1)
+            print("writing g "+ face_name + " faces...")
+            stl.write('g {}\n'.format(face_name))
     
-
-        face_name = 'maxX'+str(int(len(alphamaxX)/2)+1)
-        print("writing g "+ face_name + " faces...");
-        stl.write('g {}\n'.format(face_name))
-        
-        for j in range(yres-1):
-                t = 1
-                for k in range(int(len(alphamaxX)/2)):
-                        if j/(yres-1)>=alphamaxX[2*k] and j/(yres-1)<alphamaxX[2*k+1] :
-                            t = 0
-                 
-                if t ==1:
+            for j in range(yres-1):
+                if j/(yres-1)>=alphamaxX[2*k] and j/(yres-1)<alphamaxX[2*k+1] :
                     i = xres-1
                     stl.write("f {0} {2} {1} \n".format(ls[i][j][0]+1,ls[i][j+1][0]+1,ls[i][j][1]+1))
                     stl.write("f {0} {2} {1} \n".format(ls[i][j][1]+1,ls[i][j+1][0]+1,ls[i][j+1][1]+1))
+    
+
+        face_name = 'maxX'+str(int(len(alphamaxX)/2)+1)
+        print("writing g "+ face_name + " faces...")
+        stl.write('g {}\n'.format(face_name))
+        
+        for j in range(yres-1):
+            t = 1
+            for k in range(int(len(alphamaxX)/2)):
+                if j/(yres-1)>=alphamaxX[2*k] and j/(yres-1)<alphamaxX[2*k+1] :
+                    t = 0
+                
+            if t ==1:
+                i = xres-1
+                stl.write("f {0} {2} {1} \n".format(ls[i][j][0]+1,ls[i][j+1][0]+1,ls[i][j][1]+1))
+                stl.write("f {0} {2} {1} \n".format(ls[i][j][1]+1,ls[i][j+1][0]+1,ls[i][j+1][1]+1))
 
     else:
-        print("writing g maxX faces...");
+        print("writing g maxX faces...")
         stl.write('g maxX\n')
         
         for j in range(yres-1):
@@ -612,34 +614,34 @@ def main(argv):
 
     if alphaminX is not None:
         for k in range(int(len(alphaminX)/2)):
-                face_name = 'minX'+str(k+1)
-                print("writing g "+ face_name + " faces...");
-                stl.write('g {}\n'.format(face_name))
-        
-                for j in range(yres-1):
-                        if j/(yres-1)>=alphaminX[2*k] and j/(yres-1)<alphaminX[2*k+1] :
-                            i = 0
-                            stl.write("f {0} {2} {1} \n".format(ls[i][j][0]+1,ls[i][j+1][0]+1,ls[i][j][1]+1))
-                            stl.write("f {0} {2} {1} \n".format(ls[i][j][1]+1,ls[i][j+1][0]+1,ls[i][j+1][1]+1))
-   
-
-        face_name = 'minX'+str(int(len(alphaminX)/2)+1)
-        print("writing g "+ face_name + " faces...");
-        stl.write('g {}\n'.format(face_name))
-        
-        for j in range(yres-1):
-                t = 1
-                for k in range(int(len(alphaminX)/2)):
-                        if j/(yres-1)>=alphaminX[2*k] and j/(yres-1)<alphaminX[2*k+1] :
-                            t = 0
-                 
-                if t ==1:
+            face_name = 'minX'+str(k+1)
+            print("writing g "+ face_name + " faces...")
+            stl.write('g {}\n'.format(face_name))
+    
+            for j in range(yres-1):
+                if j/(yres-1)>=alphaminX[2*k] and j/(yres-1)<alphaminX[2*k+1] :
                     i = 0
                     stl.write("f {0} {2} {1} \n".format(ls[i][j][0]+1,ls[i][j+1][0]+1,ls[i][j][1]+1))
                     stl.write("f {0} {2} {1} \n".format(ls[i][j][1]+1,ls[i][j+1][0]+1,ls[i][j+1][1]+1))
+   
+
+        face_name = 'minX'+str(int(len(alphaminX)/2)+1)
+        print("writing g "+ face_name + " faces...")
+        stl.write('g {}\n'.format(face_name))
+        
+        for j in range(yres-1):
+            t = 1
+            for k in range(int(len(alphaminX)/2)):
+                if j/(yres-1)>=alphaminX[2*k] and j/(yres-1)<alphaminX[2*k+1] :
+                    t = 0
+                
+            if t ==1:
+                i = 0
+                stl.write("f {0} {2} {1} \n".format(ls[i][j][0]+1,ls[i][j+1][0]+1,ls[i][j][1]+1))
+                stl.write("f {0} {2} {1} \n".format(ls[i][j][1]+1,ls[i][j+1][0]+1,ls[i][j+1][1]+1))
 
     else:
-        print("writing g minX faces...");
+        print("writing g minX faces...")
         stl.write('g minX\n')
         
         for j in range(yres-1):
@@ -649,34 +651,34 @@ def main(argv):
 
     if alphamaxY is not None:
         for k in range(int(len(alphamaxY)/2)):
-                face_name = 'maxY'+str(k+1)
-                print("writing g "+ face_name + " faces...");
-                stl.write('g {}\n'.format(face_name))
-        
-                for i in range(xres-1):
-                        if i/(xres-1)>=alphamaxY[2*k] and i/(xres-1)<alphamaxY[2*k+1] :
-                            j = yres-1
-                            stl.write("f {} {} {} \n".format(ls[i][j][0]+1,ls[i][j][1]+1,ls[i+1][j][0]+1))
-                            stl.write("f {} {} {} \n".format(ls[i][j][1]+1,ls[i+1][j][1]+1,ls[i+1][j][0]+1))
-          
-
-        face_name = 'maxY'+str(int(len(alphamaxY)/2)+1)
-        print("writing g "+ face_name + " faces...");
-        stl.write('g {}\n'.format(face_name))
-        
-        for i in range(xres-1):
-                t = 1
-                for k in range(int(len(alphamaxY)/2)):
-                        if i/(xres-1)>=alphamaxY[2*k] and i/(xres-1)<alphamaxY[2*k+1] :
-                            t = 0
-                 
-                if t ==1:
+            face_name = 'maxY'+str(k+1)
+            print("writing g "+ face_name + " faces...")
+            stl.write('g {}\n'.format(face_name))
+    
+            for i in range(xres-1):
+                if i/(xres-1)>=alphamaxY[2*k] and i/(xres-1)<alphamaxY[2*k+1] :
                     j = yres-1
                     stl.write("f {} {} {} \n".format(ls[i][j][0]+1,ls[i][j][1]+1,ls[i+1][j][0]+1))
                     stl.write("f {} {} {} \n".format(ls[i][j][1]+1,ls[i+1][j][1]+1,ls[i+1][j][0]+1))
+          
+
+        face_name = 'maxY'+str(int(len(alphamaxY)/2)+1)
+        print("writing g "+ face_name + " faces...")
+        stl.write('g {}\n'.format(face_name))
+        
+        for i in range(xres-1):
+            t = 1
+            for k in range(int(len(alphamaxY)/2)):
+                if i/(xres-1)>=alphamaxY[2*k] and i/(xres-1)<alphamaxY[2*k+1] :
+                    t = 0
+                
+            if t ==1:
+                j = yres-1
+                stl.write("f {} {} {} \n".format(ls[i][j][0]+1,ls[i][j][1]+1,ls[i+1][j][0]+1))
+                stl.write("f {} {} {} \n".format(ls[i][j][1]+1,ls[i+1][j][1]+1,ls[i+1][j][0]+1))
 
     else:
-        print("writing g maxY faces...");
+        print("writing g maxY faces...")
         stl.write('g maxY\n')
         
         for i in range(xres-1):
@@ -687,30 +689,30 @@ def main(argv):
 
     if alphaminY is not None:
         for k in range(int(len(alphaminY)/2)):
-                face_name = 'minY'+str(k+1)
-                print("writing g "+ face_name + " faces...");
-                stl.write('g {}\n'.format(face_name))
-        
-                for i in range(xres-1):
-                        if i/(xres-1)>=alphaminY[2*k] and i/(xres-1)<alphaminY[2*k+1] :
-                            j = 0
-                            stl.write("f {} {} {} \n".format(ls[i][j][0]+1,ls[i][j][1]+1,ls[i+1][j][0]+1))
-                            stl.write("f {} {} {} \n".format(ls[i][j][1]+1,ls[i+1][j][1]+1,ls[i+1][j][0]+1))
-
-        face_name = 'minY'+str(int(len(alphaminY)/2)+1)
-        print("writing g "+ face_name + " faces...");
-        stl.write('g {}\n'.format(face_name))
-        
-        for i in range(xres-1):
-                t = 1
-                for k in range(int(len(alphaminY)/2)):
-                        if i/(xres-1)>=alphaminY[2*k] and i/(xres-1)<alphaminY[2*k+1] :
-                            t = 0
-                 
-                if t ==1:
+            face_name = 'minY'+str(k+1)
+            print("writing g "+ face_name + " faces...")
+            stl.write('g {}\n'.format(face_name))
+    
+            for i in range(xres-1):
+                if i/(xres-1)>=alphaminY[2*k] and i/(xres-1)<alphaminY[2*k+1] :
                     j = 0
                     stl.write("f {} {} {} \n".format(ls[i][j][0]+1,ls[i][j][1]+1,ls[i+1][j][0]+1))
                     stl.write("f {} {} {} \n".format(ls[i][j][1]+1,ls[i+1][j][1]+1,ls[i+1][j][0]+1))
+
+        face_name = 'minY'+str(int(len(alphaminY)/2)+1)
+        print("writing g "+ face_name + " faces...")
+        stl.write('g {}\n'.format(face_name))
+        
+        for i in range(xres-1):
+            t = 1
+            for k in range(int(len(alphaminY)/2)):
+                if i/(xres-1)>=alphaminY[2*k] and i/(xres-1)<alphaminY[2*k+1] :
+                    t = 0
+                
+            if t ==1:
+                j = 0
+                stl.write("f {} {} {} \n".format(ls[i][j][0]+1,ls[i][j][1]+1,ls[i+1][j][0]+1))
+                stl.write("f {} {} {} \n".format(ls[i][j][1]+1,ls[i+1][j][1]+1,ls[i+1][j][0]+1))
 
     else:
         print("writing g minY faces...");
