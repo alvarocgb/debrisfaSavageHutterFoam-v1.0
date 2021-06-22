@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 import os
 import math
 
+##########################################  Definitions  ##############################################################
+
 class vector:
     def __init__(self,x=0, y=0, z=0):
             self.x = float(x)

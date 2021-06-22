@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 26 02:02:35 2021
 
-@author: Alvaro Gonzalez Bilbao
-@version: 1.09 (18/04/21)
+'''
+Description
+    Code used to reconstruct a parallel simulation of the debrisfaSavageHutterFoam. 
+    With this code there is no need to reconstruct some fields, like the ones generated 
+    in a simulation where the mesh is modified. It also can be run in parallel, something that reconstructPar cannot.
 
-Code used to reconstruct a parallel simulation of the debrisfaSavageHutterFoam. The advantage is that with this code there is no need to reconstruct
-some fields, like the ones generated in a simulation where the mesh is modified. It also can be run in parallel, something that reconstructPar cannot.
-"""
+    The code is not capable of recognising when an internalfield or a boundarypatchfield is uniform.
+    It will always write a list of values (even if they are all the same) and say that it is a nonuniform list.
+    This problem can be easily solved calculating the max() and min() in every list before writing //AG
+Author
+    Álvaro González Bilbao alvaro.gonzalez.bilbao@gmail.com
 
-#The code is not capable of recognising when an internalfield or a boundarypatchfield is uniform.
-#It will always write a list of values (even if they are all the same) and say that it is a nonuniform list.
-#This problem can be easily solved calculating the max() and min() in every list before writing //AG
+@version: 1.10 (21/06/21)
+'''
 
-import sys  #This module provides access to some variables used or maintained by the interpreter. sys.argv returns a list with all the parameters from the command line
+import sys
 import os
 import argparse
 import shutil
+
+##########################################  Definitions  ##############################################################
 
 def header(objectName, className, locationName):
     return ("/*--------------------------------*- C++ -*----------------------------------*\\\n"
@@ -111,6 +114,13 @@ def clean_spaces_list(list):
             k += 1
         if k == len(list):
             break
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False   
 
 def read_entry(list,dict):
     dict[list[0]] = list[1]
@@ -377,7 +387,7 @@ class vector:
                 self.x= float(x)
                 self.y= float(y)
                 self.z= float(z)
-                
+            
         def List(self):
                 return [self.x,self.y,self.z]
                                 
@@ -461,166 +471,168 @@ def correct_bFEdgeLabels(dict, type):
     return new_dict
 
 class boundaryField:
-        def __init__(self,dict,type,faBoundary, correct = True):
-                self.d= dict
-                self.correct_input(type,faBoundary, correct)
+    def __init__(self,dict,type,faBoundary, correct = True):
+        self.d= dict
+        self.correct_input(type,faBoundary, correct)
                          
-        def correct_input(self,type,faBoundary, correct):
-                if correct == True:
-                    self.d = correct_bFEdgeLabels(self.d, type)
-                    pop_list = []
-                    for key in self.d.keys():
-                        if (key in faBoundary['boundaries'].keys()) == True:
-                            if self.d[key]['type'] == 'fixedValue' or self.d[key]['type'] == 'processor' or self.d[key]['type'] == 'calculated':
-                                if self.d[key]['value'][0][0] == 'uniform':
-                                    value = self.d[key].pop('value')[0]
-                                    subdict = {}
-                                    subdict['uniform'] = 'yes'
-                                    sublist = []
-                                    if faBoundary['boundaries'][key] != 0:
-                                        if type == 'vector':
-                                            v = vector(value[1:][0],value[1:][1],value[1:][2])
-                                        elif type == 'scalar':
-                                            v= float(value[1:][0])
-                                        sublist.append(v)                            
-                                    subdict['List'] = sublist
-                                    self.d[key]['value'] = subdict
-                                elif self.d[key]['value'][0][0] == 'nonuniform':
-                                    pop = self.d[key].pop('value')
-                                    subdict = {}
-                                    subdict['uniform'] = 'no'
-                                    sublist = []
-                                    if faBoundary['boundaries'][key] != 0:
-                                        value = self.d[key].pop(str(len(faBoundary['boundaries'][key])))
-                                        for i in range(len(value)):
-                                            if type == 'vector':
-                                                v = vector(value[i][0],value[i][1],value[i][2])
-                                            elif type == 'scalar':
-                                                v= float(value[i])
-                                            sublist.append(v)
-                                    subdict['List'] = sublist
-                                    self.d[key]['value'] = subdict
-                        else:
-                            pop_list.append(key)
-                    for key in pop_list:
-                        self.d.pop(key)
+    def correct_input(self,type,faBoundary, correct):
+        if correct == True:
+            self.d = correct_bFEdgeLabels(self.d, type)
+            pop_list = []
+            for key in self.d.keys():
+                if (key in faBoundary['boundaries'].keys()) == True:
+                    if self.d[key]['type'] == 'fixedValue' or self.d[key]['type'] == 'processor' or self.d[key]['type'] == 'calculated':
+                        if self.d[key]['value'][0][0] == 'uniform':
+                            value = self.d[key].pop('value')[0]
+                            subdict = {}
+                            subdict['uniform'] = 'yes'
+                            sublist = []
+                            if faBoundary['boundaries'][key] != 0:
+                                if type == 'vector':
+                                    v = vector(value[1:][0],value[1:][1],value[1:][2])
+                                elif type == 'scalar':
+                                    v= float(value[1:][0])
+                                sublist.append(v)                            
+                            subdict['List'] = sublist
+                            self.d[key]['value'] = subdict
+                        elif self.d[key]['value'][0][0] == 'nonuniform':
+                            pop = self.d[key].pop('value')
+                            subdict = {}
+                            subdict['uniform'] = 'no'
+                            sublist = []
+                            if faBoundary['boundaries'][key] != 0:
+                                value = self.d[key].pop(str(len(faBoundary['boundaries'][key])))
+                                for i in range(len(value)):
+                                    if type == 'vector':
+                                        v = vector(value[i][0],value[i][1],value[i][2])
+                                    elif type == 'scalar':
+                                        v= float(value[i])
+                                    sublist.append(v)
+                            subdict['List'] = sublist
+                            self.d[key]['value'] = subdict
+                else:
+                    pop_list.append(key)
+            for key in pop_list:
+                self.d.pop(key)
                         
 def read_areaField_proc(path, time, name, type, output, n_processors, proc_fB, proc_nF):
-        dict = {}
-        for p in range(n_processors):
-            list = []
-            get_input(path+'/processor'+str(p)+'/'+str(time)+'/'+name,list)
-            field = {}
-            read_dictionary(list,field)
-            dimension = dimensions(field['dimensions'])
-            boundaryfield = boundaryField(field['boundaryField'],type,proc_fB['processor'+str(p)])
-            internalfield = internalField(field,type,proc_nF['processor'+str(p)])
-            dict['processor'+str(p)] = areaField(type,internalfield,boundaryfield,dimension)
-        output[str(time)] = dict
-
-def read_edgeField_proc(path, time, name, type, output, n_processors, proc_fB, proc_nE):
-        dict = {}
-        for p in range(n_processors):
-            list = []
-            get_input(path+'/processor'+str(p)+'/'+str(time)+'/'+name,list)
-            field = {}
-            read_dictionary(list,field)
-            dimension = dimensions(field['dimensions'])
-            boundaryfield = boundaryField(field['boundaryField'],type,proc_fB['processor'+str(p)])
-            internalfield = internalField(field,type,proc_nE['processor'+str(p)]['internal'])
-            dict['processor'+str(p)] = areaField(type,internalfield,boundaryfield,dimension)
-        output[str(time)] = dict
-
-def read_edgeField(path,time,name,type,output,number_edges,faBoundary):
+    dict = {}
+    for p in range(n_processors):
         list = []
-        get_input(path+'/'+str(time)+'/'+name,list)
+        get_input(path+'/processor'+str(p)+'/'+str(time)+'/'+name,list)
         field = {}
         read_dictionary(list,field)
         dimension = dimensions(field['dimensions'])
-        boundaryfield = boundaryField(field['boundaryField'],type,faBoundary)
-        internalfield = internalField(field,type,number_edges)
-        output[str(time)] = areaField(type,internalfield,boundaryfield,dimension)
+        boundaryfield = boundaryField(field['boundaryField'],type,proc_fB['processor'+str(p)])
+        internalfield = internalField(field,type,proc_nF['processor'+str(p)])
+        dict['processor'+str(p)] = areaField(type,internalfield,boundaryfield,dimension)
+    output[str(time)] = dict
+
+def read_edgeField_proc(path, time, name, type, output, n_processors, proc_fB, proc_nE):
+    dict = {}
+    for p in range(n_processors):
+        list = []
+        get_input(path+'/processor'+str(p)+'/'+str(time)+'/'+name,list)
+        field = {}
+        read_dictionary(list,field)
+        dimension = dimensions(field['dimensions'])
+        boundaryfield = boundaryField(field['boundaryField'],type,proc_fB['processor'+str(p)])
+        internalfield = internalField(field,type,proc_nE['processor'+str(p)]['internal'])
+        dict['processor'+str(p)] = areaField(type,internalfield,boundaryfield,dimension)
+    output[str(time)] = dict
+
+def read_edgeField(path,time,name,type,output,number_edges,faBoundary):
+    list = []
+    get_input(path+'/'+str(time)+'/'+name,list)
+    field = {}
+    read_dictionary(list,field)
+    dimension = dimensions(field['dimensions'])
+    boundaryfield = boundaryField(field['boundaryField'],type,faBoundary)
+    internalfield = internalField(field,type,number_edges)
+    output[str(time)] = areaField(type,internalfield,boundaryfield,dimension)
 
 def read_ec(path,output, number_edges,faBoundary):
-        read_edgeField(path, 0, 'ec','vector',output, number_edges,faBoundary)
+    read_edgeField(path, 0, 'ec','vector',output, number_edges,faBoundary)
 
 def read_ec_proc(path,output,n_processors, proc_fB, proc_nE):
-        read_edgeField_proc(path, 0, 'ec','vector',output, n_processors, proc_fB, proc_nE)
+    read_edgeField_proc(path, 0, 'ec','vector',output, n_processors, proc_fB, proc_nE)
        
 def read_h_proc(path, time, output, n_processors, proc_fB, proc_nF):
-        read_areaField_proc(path, time, 'h','scalar',output, n_processors, proc_fB, proc_nF)
+    read_areaField_proc(path, time, 'h','scalar',output, n_processors, proc_fB, proc_nF)
 
 def read_pb_proc(path, time, output, n_processors, proc_fB, proc_nF):
-        read_areaField_proc(path, time, 'pb','scalar',output, n_processors, proc_fB, proc_nF)
+    read_areaField_proc(path, time, 'pb','scalar',output, n_processors, proc_fB, proc_nF)
                 
 def read_Cv_proc(path, time, output, n_processors, proc_fB, proc_nF):
-        read_areaField_proc(path, time, 'Cv','scalar',output, n_processors, proc_fB, proc_nF)
+    read_areaField_proc(path, time, 'Cv','scalar',output, n_processors, proc_fB, proc_nF)
                 
 def read_deltac0_proc(path, time, output, n_processors, proc_fB, proc_nF):
-        read_areaField_proc(path, time, 'deltac0','scalar',output, n_processors, proc_fB, proc_nF)
+    read_areaField_proc(path, time, 'deltac0','scalar',output, n_processors, proc_fB, proc_nF)
 
 def read_deltah0_proc(path, time, output, n_processors, proc_fB, proc_nF):
-        read_areaField_proc(path, time, 'deltah0','scalar',output, n_processors, proc_fB, proc_nF)
+    read_areaField_proc(path, time, 'deltah0','scalar',output, n_processors, proc_fB, proc_nF)
 
 def read_Us_proc(path, time, output, n_processors, proc_fB, proc_nF):
-        read_areaField_proc(path, time, 'Us','vector',output, n_processors, proc_fB, proc_nF)
+    read_areaField_proc(path, time, 'Us','vector',output, n_processors, proc_fB, proc_nF)
 
 def read_tau_proc(path, time, output, n_processors, proc_fB, proc_nF):
-        read_areaField_proc(path, time, 'tau','vector',output, n_processors, proc_fB, proc_nF)
+    read_areaField_proc(path, time, 'tau','vector',output, n_processors, proc_fB, proc_nF)
 
 def read_Q_proc(path, time, output, n_processors, proc_fB, proc_nE):
-        read_edgeField_proc(path, time, 'Q','scalar',output, n_processors, proc_fB, proc_nE)
+    read_edgeField_proc(path, time, 'Q','scalar',output, n_processors, proc_fB, proc_nE)
 
 def read_phi2s_proc(path, time, output, n_processors, proc_fB, proc_nE):
-        read_edgeField_proc(path, time, 'phi2s','scalar',output, n_processors, proc_fB, proc_nE)
+    read_edgeField_proc(path, time, 'phi2s','scalar',output, n_processors, proc_fB, proc_nE)
+
+##########################################  runCase class  ##############################################################
 
 class runCase:
         def __init__(self,path, h='on',Cv='on',deltaz0='on',Us='on',Q='on',pb='on',tau='on', phi2s = 'on', rank = 0):
                 self.t= []
-                self.h_proc = {}               
+                self.h_proc  = {}               
                 self.Cv_proc = {}
+                self.pb_proc = {}
                 self.deltah0_proc = {}
                 self.deltac0_proc = {}
-                self.Us_proc = {}
-                self.Q_proc = {}
-                self.pb_proc = {}
+                self.Us_proc  = {}                               
                 self.tau_proc = {}
+                self.Q_proc = {}
                 self.phi2s_proc = {}
                 
-                self.h = {}               
+                self.h  = {}               
                 self.Cv = {}
+                self.pb = {}
                 self.deltah0 = {}
                 self.deltac0 = {}
-                self.Us = {}
-                self.Q = {}
-                self.pb = {}
+                self.Us  = {}               
                 self.tau = {}
+                self.Q = {}
                 self.phi2s = {}
                 
-                self.p = path
-                self.nF = get_number_faces(self.p)
-                self.nE = {} #number Edges
+                self.p  = path
                 self.np = number_processors(self.p)
                 self.fB = {}  #faBoundary
+                self.nF = get_number_faces(self.p)
+                self.nE = {}  #number Edges             
+                self.ec = {}
                 self.proc_fB = {}  #processors faBoundary
                 self.proc_nF = {}  #processors number of faces
                 self.proc_nE = {}  #processors number of edges
+                self.proc_ec = {}
                 self.proc_faceaddr = {}
                 self.proc_edgeaddr = {}
-                self.t_size = []  # time list used to run in parallel
-                self.ec = {}
-                self.proc_ec = {}
-                self.rank = rank #processor number
+                self.t_size = []  # time list used when runnning in parallel                
+                self.rank = rank  #processor number
                
-                self.h_flag = h
+                self.h_flag  = h
                 self.Cv_flag = Cv
+                self.pb_flag = pb
                 self.deltaz0_flag = deltaz0
                 self.deltac0_flag = False
                 self.deltah0_flag = False
-                self.Us_flag = Us
-                self.Q_flag = Q
-                self.pb_flag = pb
+                self.Us_flag  = Us
                 self.tau_flag = tau
+                self.Q_flag = Q              
                 self.phi2s_flag = phi2s
                 
                 self.get_case()
@@ -648,27 +660,29 @@ class runCase:
                 if self.rank == 0:
                     print ('Reading files names ...')
                 files_list = create_files_list(self.p+'/processor0'+'/'+str(self.t[-1]))
+
                 if (self.h_flag == 'on' or  self.h_flag == True) and not('h' in files_list):
                     self.h_flag = 'off'
                 if (self.Cv_flag == 'on' or  self.Cv_flag == True) and not('Cv' in files_list):
                     self.Cv_flag = 'off'
+                if (self.pb_flag == 'on' or  self.pb_flag == True) and not('pb' in files_list):
+                    self.pb_flag = 'off'
+                if (self.Us_flag == 'on' or  self.Us_flag == True) and not('Us' in files_list):
+                    self.Us_flag = 'off'
+                if (self.tau_flag == 'on' or  self.tau_flag == True) and not('tau' in files_list):
+                    self.tau_flag = 'off'
+                if (self.Q_flag == 'on' or  self.Q_flag == True) and not('Q' in files_list):
+                    self.Q_flag = 'off'              
+                if (self.phi2s_flag == 'on' or  self.phi2s_flag == True) and not('phi2s' in files_list):
+                    self.phi2s_flag = 'off'
+
                 if (self.deltaz0_flag == 'on' or  self.deltaz0_flag == True) and not('deltac0' in files_list or 'deltah0' in files_list):
                     self.deltaz0_flag = 'off'
                 elif (self.deltaz0_flag == 'on' or  self.deltaz0_flag == True) and ('deltac0' in files_list):
                     self.deltac0_flag = 'on'
                 elif (self.deltaz0_flag == 'on' or  self.deltaz0_flag == True) and ('deltah0' in files_list):
                     self.deltah0_flag = 'on' 
-                if (self.Us_flag == 'on' or  self.Us_flag == True) and not('Us' in files_list):
-                    self.Us_flag = 'off'
-                if (self.Q_flag == 'on' or  self.Q_flag == True) and not('Q' in files_list):
-                    self.Q_flag = 'off'
-                if (self.pb_flag == 'on' or  self.pb_flag == True) and not('pb' in files_list):
-                    self.pb_flag = 'off'
-                if (self.tau_flag == 'on' or  self.tau_flag == True) and not('tau' in files_list):
-                    self.tau_flag = 'off'
-                if (self.phi2s_flag == 'on' or  self.phi2s_flag == True) and not('phi2s' in files_list):
-                    self.phi2s_flag = 'off'
-                    
+
         def get_proc_nF(self):
                 read_proc_number_faces(self.p, self.np, self.proc_nF)
 
@@ -746,16 +760,6 @@ class runCase:
                     else:
                         read_Cv_proc(self.p, time, self.Cv_proc, self.np, self.proc_fB, self.proc_nF)
 
-        def get_Us(self, report = True, time = -1):                
-                if (self.Us_flag == 'on' or self.Us_flag == 'yes' or self.Us_flag == True):
-                    if report == True:
-                        print('Reading Us field ...')
-                    if time == -1:
-                        for t in self.t:
-                            read_Us_proc(self.p, t, self.Us_proc, self.np, self.proc_fB, self.proc_nF)
-                    else:
-                        read_Us_proc(self.p, time, self.Us_proc, self.np, self.proc_fB, self.proc_nF)
-
         def get_pb(self, report = True, time = -1):                
                 if (self.pb_flag == 'on' or self.pb_flag == 'yes' or self.pb_flag == True):
                     if report == True:
@@ -765,16 +769,6 @@ class runCase:
                             read_pb_proc(self.p, t, self.pb_proc, self.np, self.proc_fB, self.proc_nF)
                     else:
                         read_pb_proc(self.p, time, self.pb_proc, self.np, self.proc_fB, self.proc_nF)
-
-        def get_tau(self, report = True, time = -1):                
-                if (self.tau_flag == 'on' or self.tau_flag == 'yes' or self.tau_flag == True):
-                    if report == True:
-                        print('Reading tau field ...')
-                    if time == -1:
-                        for t in self.t:
-                            read_tau_proc(self.p, t, self.tau_proc, self.np, self.proc_fB, self.proc_nF)
-                    else:
-                        read_tau_proc(self.p, time, self.tau_proc, self.np, self.proc_fB, self.proc_nF)
 
         def get_deltaz0(self, report = True, time = -1):                
                 if (self.deltac0_flag == 'on' or self.deltac0_flag == 'yes' or self.deltac0_flag == True):
@@ -793,6 +787,26 @@ class runCase:
                             read_deltah0_proc(self.p, t, self.deltah0_proc, self.np, self.proc_fB, self.proc_nF)
                     else:
                         read_deltah0_proc(self.p, time, self.deltah0_proc, self.np, self.proc_fB, self.proc_nF)
+
+        def get_Us(self, report = True, time = -1):                
+                if (self.Us_flag == 'on' or self.Us_flag == 'yes' or self.Us_flag == True):
+                    if report == True:
+                        print('Reading Us field ...')
+                    if time == -1:
+                        for t in self.t:
+                            read_Us_proc(self.p, t, self.Us_proc, self.np, self.proc_fB, self.proc_nF)
+                    else:
+                        read_Us_proc(self.p, time, self.Us_proc, self.np, self.proc_fB, self.proc_nF)
+
+        def get_tau(self, report = True, time = -1):                
+                if (self.tau_flag == 'on' or self.tau_flag == 'yes' or self.tau_flag == True):
+                    if report == True:
+                        print('Reading tau field ...')
+                    if time == -1:
+                        for t in self.t:
+                            read_tau_proc(self.p, t, self.tau_proc, self.np, self.proc_fB, self.proc_nF)
+                    else:
+                        read_tau_proc(self.p, time, self.tau_proc, self.np, self.proc_fB, self.proc_nF)
 
         def get_Q(self, report = True, time = -1):                
                 if (self.Q_flag == 'on' or self.Q_flag == 'yes' or self.Q_flag == True):
@@ -834,16 +848,6 @@ class runCase:
                     else:
                         self.create_areaField(time, self.Cv_proc, self.get_Cv, self.Cv, 'scalar')
 
-        def create_Us(self, report = True, time = -1):                
-                if (self.Us_flag == 'on' or self.Us_flag == 'yes' or self.Us_flag == True):
-                    if report == True:
-                        print('Creating Us field ...')
-                    if time == -1:
-                        for t in self.t:
-                            self.create_areaField(t, self.Us_proc, self.get_Us, self.Us, 'vector')
-                    else:
-                        self.create_areaField(time, self.Us_proc, self.get_Us, self.Us, 'vector')
-
         def create_pb(self, report = True, time = -1):                
                 if (self.pb_flag == 'on' or self.pb_flag == 'yes' or self.pb_flag == True):
                     if report == True:
@@ -853,16 +857,6 @@ class runCase:
                             self.create_areaField(t, self.pb_proc, self.get_pb, self.pb, 'scalar')
                     else:
                         self.create_areaField(time, self.pb_proc, self.get_pb, self.pb, 'scalar')
-
-        def create_tau(self, report = True, time = -1):                
-                if (self.tau_flag == 'on' or self.tau_flag == 'yes' or self.tau_flag == True):
-                    if report == True:
-                        print('Creating tau field ...')
-                    if time == -1:
-                        for t in self.t:
-                            self.create_areaField(t, self.tau_proc, self.get_tau, self.tau, 'vector')
-                    else:
-                        self.create_areaField(time, self.tau_proc, self.get_tau, self.tau, 'vector')
 
         def create_deltaz0(self, report = True, time = -1):                
                 if (self.deltac0_flag == 'on' or self.deltac0_flag == 'yes' or self.deltac0_flag == True):
@@ -881,6 +875,26 @@ class runCase:
                             self.create_areaField(t, self.deltah0_proc, self.get_deltaz0, self.deltah0, 'scalar')
                     else:
                         self.create_areaField(time, self.deltah0_proc, self.get_deltaz0, self.deltah0, 'scalar') 
+
+        def create_Us(self, report = True, time = -1):                
+                if (self.Us_flag == 'on' or self.Us_flag == 'yes' or self.Us_flag == True):
+                    if report == True:
+                        print('Creating Us field ...')
+                    if time == -1:
+                        for t in self.t:
+                            self.create_areaField(t, self.Us_proc, self.get_Us, self.Us, 'vector')
+                    else:
+                        self.create_areaField(time, self.Us_proc, self.get_Us, self.Us, 'vector')
+
+        def create_tau(self, report = True, time = -1):                
+                if (self.tau_flag == 'on' or self.tau_flag == 'yes' or self.tau_flag == True):
+                    if report == True:
+                        print('Creating tau field ...')
+                    if time == -1:
+                        for t in self.t:
+                            self.create_areaField(t, self.tau_proc, self.get_tau, self.tau, 'vector')
+                    else:
+                        self.create_areaField(time, self.tau_proc, self.get_tau, self.tau, 'vector')
 
         def create_Q(self, report = True, time = -1):                
                 if (self.Q_flag == 'on' or self.Q_flag == 'yes' or self.Q_flag == True):
@@ -1089,41 +1103,6 @@ class runCase:
                     self.write_areaFields(path,time)
                     self.write_edgeFields(path,time)
                     self.clean_fields(False, time)
-
-        def clean_fields(self, report = True, time = -1):
-                if time == -1:
-                    if report == True:
-                        print('Cleaning fields ...')
-                    for t in self.t:
-                        self.clean_areaFields(t)
-                        self.clean_edgeFields(t)
-                else:
-                    if report == True:
-                        print('Cleaning fields for time = '+ str(time)+' ...')
-                    self.clean_areaFields(time)
-                    self.clean_edgeFields(time)
-                    
-        def clean_areaFields(self, t):
-                self.h_proc.pop(str(t), None)
-                self.Cv_proc.pop(str(t), None)
-                self.deltac0_proc.pop(str(t), None)
-                self.deltah0_proc.pop(str(t), None)
-                self.Us_proc.pop(str(t), None)
-                self.pb_proc.pop(str(t), None)
-                self.tau_proc.pop(str(t), None)                
-                self.h.pop(str(t), None)
-                self.Cv.pop(str(t), None)
-                self.deltac0.pop(str(t), None)
-                self.deltah0.pop(str(t), None)
-                self.Us.pop(str(t), None)
-                self.pb.pop(str(t), None)
-                self.tau.pop(str(t), None) 
-                
-        def clean_edgeFields(self, t):
-                self.Q_proc.pop(str(t), None)
-                self.phi2s_proc.pop(str(t), None)
-                self.Q.pop(str(t), None)
-                self.phi2s.pop(str(t), None)
                 
         def write_areaFields(self, path, t):
                 self.write_h(path,t)
@@ -1268,7 +1247,44 @@ class runCase:
                 fi.write('}'+"\n")
                 fi.write("\n") 
 
-    
+        def clean_fields(self, report = True, time = -1):
+                if time == -1:
+                    if report == True:
+                        print('Cleaning fields ...')
+                    for t in self.t:
+                        self.clean_areaFields(t)
+                        self.clean_edgeFields(t)
+                else:
+                    if report == True:
+                        print('Cleaning fields for time = '+ str(time)+' ...')
+                    self.clean_areaFields(time)
+                    self.clean_edgeFields(time)
+                    
+        def clean_areaFields(self, t):
+                self.h_proc.pop(str(t), None)
+                self.Cv_proc.pop(str(t), None)
+                self.deltac0_proc.pop(str(t), None)
+                self.deltah0_proc.pop(str(t), None)
+                self.Us_proc.pop(str(t), None)
+                self.pb_proc.pop(str(t), None)
+                self.tau_proc.pop(str(t), None)                
+                self.h.pop(str(t), None)
+                self.Cv.pop(str(t), None)
+                self.deltac0.pop(str(t), None)
+                self.deltah0.pop(str(t), None)
+                self.Us.pop(str(t), None)
+                self.pb.pop(str(t), None)
+                self.tau.pop(str(t), None) 
+                
+        def clean_edgeFields(self, t):
+                self.Q_proc.pop(str(t), None)
+                self.phi2s_proc.pop(str(t), None)
+                self.Q.pop(str(t), None)
+                self.phi2s.pop(str(t), None)
+
+
+ ##########################################  Main function  ##############################################################
+
 def clean_dir(path, dir, rank = 0):
     if rank == 0:
         listdir = os.listdir(path)
@@ -1307,15 +1323,7 @@ def date(t):
     sc = date_format(t[5])
     
     return dy+'/'+mo+'/'+yr+'  '+hr+':'+mi+':'+sc                 
-                
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False                
-
-#It would be useful to incorporate the option of using a list of times as inputs. //AG              
+                          
 def main(argv):
     from mpi4py import MPI
     import time
@@ -1340,12 +1348,13 @@ def main(argv):
     o = args.o
     h = args.h_flag
     Cv = args.Cv_flag
-    deltaz0 = args.deltaz0_flag
-    Us = args.Us_flag
-    Q = args.Q_flag
-    tau = args.tau_flag
     pb = args.pb_flag
+    deltaz0 = args.deltaz0_flag
+    Us  = args.Us_flag
+    tau = args.tau_flag
+    Q = args.Q_flag   
     phi2s = args.phi2s_flag
+
     withZero = args.withZero
             
     comm = MPI.COMM_WORLD
@@ -1371,8 +1380,8 @@ def main(argv):
         
     r = comm.bcast(r, root=0)
     r.rank = rank
-    r.write_output(output,size, -1, withZero)
-    r
+    r.write_output(output, size, -1, withZero)
+    
     print('Rank = ' + str(r.rank)+'  ended at = ' + str(date(time.gmtime())))
 
 if __name__ == "__main__":

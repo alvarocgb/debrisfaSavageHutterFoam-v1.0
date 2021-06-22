@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Nov 25 19:17:19 2019
 
-@author: Alvaro Gonzalez Bilbao
-@version: 1.30 (18/04/21)
+'''
+Description
+    This code is used to process the results of a debrisfaSavageHutterFoam simulation. If the simulation was performed
+    in parallel then it is necessary to reconstruct the fields with the reconstructPar utility or the Par_reconstructPar.py.
+Author
+    Álvaro González Bilbao alvaro.gonzalez.bilbao@gmail.com
 
-This code is used to process the results of a debrisfaSavageHutterFoam simulation. If the simulation was performed
-in parallel then it is necessary to reconstruct the fields with the reconstructPar utility or the Par_reconstructPar.py.
-In a future version of this code read_debris_case.py and Par_reconstructPar.py will be combined.
-"""
+@version: 1.31 (21/06/21)
+'''
 
 import numpy as np
-import sys  #This module provides access to some variables used or maintained by the interpreter. sys.argv returns a list with all the parameters from the command line
+import sys  
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 import matplotlib.colors as mcolors
@@ -21,6 +20,8 @@ import math
 from operator import itemgetter
 import argparse
 import shutil
+
+##########################################  Definitions  ##############################################################
 
 def clean_brackets(list):
     k = 0
@@ -661,116 +662,119 @@ class boundaryField:
 
 #Right now, read_areaField and read_edgeField are the same, probably in the past there were some differences. I will conserve both for the moment.  //AG                         
 def read_areaField(path,time,name,type,output,number_faces,faBoundary):
-        list = []
-        get_input(path+'/'+str(time)+'/'+name,list)
-        field = {}
-        read_dictionary(list,field)
-        dimension = dimensions(field['dimensions'])
-        boundaryfield = boundaryField(field['boundaryField'],type,faBoundary)
-        internalfield = internalField(field,type,number_faces)
-        output[str(time)] = areaField(type,internalfield,boundaryfield,dimension)
+    list = []
+    get_input(path+'/'+str(time)+'/'+name,list)
+    field = {}
+    read_dictionary(list,field)
+    dimension = dimensions(field['dimensions'])
+    boundaryfield = boundaryField(field['boundaryField'],type,faBoundary)
+    internalfield = internalField(field,type,number_faces)
+    output[str(time)] = areaField(type,internalfield,boundaryfield,dimension)
 
 def read_edgeField(path,time,name,type,output,number_edges,faBoundary):
+    list = []
+    get_input(path+'/'+str(time)+'/'+name,list)
+    field = {}
+    read_dictionary(list,field)
+    dimension = dimensions(field['dimensions'])
+    boundaryfield = boundaryField(field['boundaryField'],type,faBoundary)
+    internalfield = internalField(field,type,number_edges)
+    output[str(time)] = areaField(type,internalfield,boundaryfield,dimension)
+       
+def read_h(path, time, output, number_faces,faBoundary):
+    read_areaField(path, time, 'h','scalar',output, number_faces,faBoundary)
+                
+def read_pb(path, time, output, number_faces,faBoundary):
+    read_areaField(path, time, 'pb','scalar',output, number_faces,faBoundary)
+        
+def read_Cv(path, time, output, number_faces,faBoundary):
+    read_areaField(path, time, 'Cv','scalar',output, number_faces,faBoundary)
+                
+def read_deltac0(path, time, output, number_faces,faBoundary):
+    read_areaField(path, time, 'deltac0','scalar',output, number_faces,faBoundary)
+
+def read_deltah0(path, time, output, number_faces,faBoundary):
+    read_areaField(path, time, 'deltah0','scalar',output, number_faces,faBoundary)
+
+def read_Us(path, time, output, number_faces,faBoundary):
+    read_areaField(path, time, 'Us','vector',output, number_faces,faBoundary)
+
+def read_tau(path, time, output, number_faces,faBoundary):
+    read_areaField(path, time, 'tau','vector',output, number_faces,faBoundary)
+        
+def read_n(path, time, output, number_faces,faBoundary):
+    read_areaField(path, time, 'n','vector',output, number_faces ,faBoundary)
+
+def read_he(path, time, output, number_faces,faBoundary):
+    read_areaField(path, time, 'he','scalar',output, number_faces,faBoundary)
+
+def read_c(path, time, output, number_faces,faBoundary):
+    read_areaField(path, time, 'c','vector',output, number_faces ,faBoundary)
+
+def read_ec(path,output, number_edges,faBoundary):
+    read_edgeField(path, 0, 'ec','vector',output, number_edges,faBoundary)
+
+def read_A(path,time, output, number_faces,faBoundary):
+    read_areaField(path, time, 'A','scalar',output, number_faces ,faBoundary)
+        
+def read_phi2s(path, time, output, number_edges,faBoundary):
+    read_edgeField(path, time, 'phi2s','scalar',output, number_edges ,faBoundary)
+        
+def read_Q(path, time, output, number_edges, faBoundary):
+    read_edgeField(path, time, 'Q','scalar',output, number_edges, faBoundary)
+
+def read_c_proc(path, time, output, n_processors, proc_fB, proc_nF):
+    read_areaField_proc(path, time, 'c','vector',output, n_processors, proc_fB, proc_nF)
+        
+def read_ec_proc(path,output,n_processors, proc_fB, proc_nE):
+    read_edgeField_proc(path, 0, 'ec','vector',output, n_processors, proc_fB, proc_nE) 
+       
+def read_Q_proc(path, time, output, n_processors, proc_fB, proc_nE):
+    read_edgeField_proc(path, time, 'Q', 'scalar', output, n_processors, proc_fB, proc_nE)
+
+def read_phi2s_proc(path, time, output, n_processors, proc_fB, proc_nE):
+    read_edgeField_proc(path, time, 'phi2s', 'scalar', output, n_processors, proc_fB, proc_nE)
+
+def read_areaField_proc(path, time, name, type, output, n_processors, proc_fB, proc_nF):
+    dict = {}
+    for p in range(n_processors):
         list = []
-        get_input(path+'/'+str(time)+'/'+name,list)
+        get_input(path+'/processor'+str(p)+'/'+str(time)+'/'+name,list)
         field = {}
         read_dictionary(list,field)
         dimension = dimensions(field['dimensions'])
-        boundaryfield = boundaryField(field['boundaryField'],type,faBoundary)
-        internalfield = internalField(field,type,number_edges)
-        output[str(time)] = areaField(type,internalfield,boundaryfield,dimension)
-       
-def read_h(path, time, output, number_faces,faBoundary):
-        read_areaField(path, time, 'h','scalar',output, number_faces,faBoundary)
-                
-def read_pb(path, time, output, number_faces,faBoundary):
-        read_areaField(path, time, 'pb','scalar',output, number_faces,faBoundary)
-        
-def read_Cv(path, time, output, number_faces,faBoundary):
-        read_areaField(path, time, 'Cv','scalar',output, number_faces,faBoundary)
-                
-def read_deltac0(path, time, output, number_faces,faBoundary):
-        read_areaField(path, time, 'deltac0','scalar',output, number_faces,faBoundary)
-
-def read_deltah0(path, time, output, number_faces,faBoundary):
-        read_areaField(path, time, 'deltah0','scalar',output, number_faces,faBoundary)
-
-def read_Us(path, time, output, number_faces,faBoundary):
-        read_areaField(path, time, 'Us','vector',output, number_faces,faBoundary)
-
-def read_tau(path, time, output, number_faces,faBoundary):
-        read_areaField(path, time, 'tau','vector',output, number_faces,faBoundary)
-        
-def read_n(path, time, output, number_faces,faBoundary):
-        read_areaField(path, time, 'n','vector',output, number_faces ,faBoundary)
-
-def read_he(path, time, output, number_faces,faBoundary):
-        read_areaField(path, time, 'he','scalar',output, number_faces,faBoundary)
-
-def read_c(path, time, output, number_faces,faBoundary):
-        read_areaField(path, time, 'c','vector',output, number_faces ,faBoundary)
-
-def read_ec(path,output, number_edges,faBoundary):
-        read_edgeField(path, 0, 'ec','vector',output, number_edges,faBoundary)
-
-def read_A(path,time, output, number_faces,faBoundary):
-        read_areaField(path, time, 'A','scalar',output, number_faces ,faBoundary)
-        
-def read_phi2s(path, time, output, number_edges,faBoundary):
-        read_edgeField(path, time, 'phi2s','scalar',output, number_edges ,faBoundary)
-        
-def read_Q(path, time, output, number_edges, faBoundary):
-        read_edgeField(path, time, 'Q','scalar',output, number_edges, faBoundary)
-
-def read_c_proc(path, time, output, n_processors, proc_fB, proc_nF):
-        read_areaField_proc(path, time, 'c','vector',output, n_processors, proc_fB, proc_nF)
-        
-def read_ec_proc(path,output,n_processors, proc_fB, proc_nE):
-        read_edgeField_proc(path, 0, 'ec','vector',output, n_processors, proc_fB, proc_nE) 
-       
-def read_Q_proc(path, time, output, n_processors, proc_fB, proc_nE):
-        read_edgeField_proc(path, time, 'Q', 'scalar', output, n_processors, proc_fB, proc_nE)
-
-def read_phi2s_proc(path, time, output, n_processors, proc_fB, proc_nE):
-        read_edgeField_proc(path, time, 'phi2s', 'scalar', output, n_processors, proc_fB, proc_nE)
-
-def read_areaField_proc(path, time, name, type, output, n_processors, proc_fB, proc_nF):
-        dict = {}
-        for p in range(n_processors):
-            list = []
-            get_input(path+'/processor'+str(p)+'/'+str(time)+'/'+name,list)
-            field = {}
-            read_dictionary(list,field)
-            dimension = dimensions(field['dimensions'])
-            boundaryfield = boundaryField(field['boundaryField'],type,proc_fB['processor'+str(p)])
-            internalfield = internalField(field,type,proc_nF['processor'+str(p)])
-            dict['processor'+str(p)] = areaField(type,internalfield,boundaryfield,dimension)
-        output[str(time)] = dict
+        boundaryfield = boundaryField(field['boundaryField'],type,proc_fB['processor'+str(p)])
+        internalfield = internalField(field,type,proc_nF['processor'+str(p)])
+        dict['processor'+str(p)] = areaField(type,internalfield,boundaryfield,dimension)
+    output[str(time)] = dict
 
 def read_edgeField_proc(path, time, name, type, output, n_processors, proc_fB, proc_nE):
-        dict = {}
-        for p in range(n_processors):
-            list = []
-            get_input(path+'/processor'+str(p)+'/'+str(time)+'/'+name,list)
-            field = {}
-            read_dictionary(list,field)
-            dimension = dimensions(field['dimensions'])
-            boundaryfield = boundaryField(field['boundaryField'],type,proc_fB['processor'+str(p)])
-            internalfield = internalField(field,type,proc_nE['processor'+str(p)]['internal'])
-            dict['processor'+str(p)] = areaField(type,internalfield,boundaryfield,dimension)
-        output[str(time)] = dict
+    dict = {}
+    for p in range(n_processors):
+        list = []
+        get_input(path+'/processor'+str(p)+'/'+str(time)+'/'+name,list)
+        field = {}
+        read_dictionary(list,field)
+        dimension = dimensions(field['dimensions'])
+        boundaryfield = boundaryField(field['boundaryField'],type,proc_fB['processor'+str(p)])
+        internalfield = internalField(field,type,proc_nE['processor'+str(p)]['internal'])
+        dict['processor'+str(p)] = areaField(type,internalfield,boundaryfield,dimension)
+    output[str(time)] = dict
 
 #When running the code in parallel the reconstructed fields are created in ascending order,
 #that is why for an edge shared by proc0 and proc1 the value that will remain is the one in proc1 //AG
 def correct_edge_proc(internal_field, procBoundary_owner, procBoundary_edgeList):                       
-        if internal_field.u == 'nonuniform':
-            for patch_key in procBoundary_owner.keys():
-                for i in range(len(procBoundary_owner[patch_key])):
-                    first_owner = procBoundary_owner[patch_key][i]
-                    if first_owner == 1:
-                        internal_field.field[procBoundary_edgeList[patch_key][i]] *= -1
-    
-#Class runCase is used to read the outputs of the OpenFOAM simulation. Just a few calculations are performed inside the class //AG  
+    if internal_field.u == 'nonuniform':
+        for patch_key in procBoundary_owner.keys():
+            for i in range(len(procBoundary_owner[patch_key])):
+                first_owner = procBoundary_owner[patch_key][i]
+                if first_owner == 1:
+                    internal_field.field[procBoundary_edgeList[patch_key][i]] *= -1
+
+
+##########################################  runCase class  ##############################################################
+
+#Class runCase is used to read the outputs of the OpenFOAM simulation. Just a few calculations are performed inside this class //AG  
 class runCase:
         def __init__(self,path,lp_name='',tp_name='',h='on',pb='off',Cv='on',deltaz0='on',Us='on',tau='off',phi2s='off',Q='on',c='off',n='off',he='off', A='off'):
                 self.t= []
@@ -790,46 +794,46 @@ class runCase:
                 
                 self.p = path
                 self.nF = get_number_faces(self.p)
-                self.nE = {}
+                self.nE = {}  #number Edges 
                 self.np = number_processors(self.p)
                 self.ec = {}  #edgeCentres
                 self.eO = {}  #edgeOwner
                 self.eN = {}  #edgeNeighbor
-                self.faces = {}
+                self.faces  = {}
                 self.points = {}
                 self.fB = {}  #faBoundary
                 self.lp = {}  #longitudinal profile
                 self.tp = {}  #transversal profile
                                 
                 self.tps = {}  #transportProperties dictionary
-                self.rA = {}  #releaseArea dictionary
-                self.rF = {}  #releaseFlow dictionary
-                self.mD = {}  #meshDict dictionary
-                self.hmin = -1
+                self.rA  = {}  #releaseArea dictionary
+                self.rF  = {}  #releaseFlow dictionary
+                self.mD  = {}  #meshDict dictionary               
                 self.lp_name = lp_name
                 self.tp_name = tp_name
                 self.app = ''
-                self.sT = ''
-                self.eT = ''
-                self.wI = ''
+                self.sT  = ''
+                self.eT  = ''
+                self.wI  = ''
                 self.maxCo = ''
+                self.hmin  = -1
                 self.rho_w = -1
                 self.rho_s = -1
                 self.rho_b = -1
                 self.eM = ''
                 self.eM_coeffs = {}
                
-                self.h_flag = h
+                self.h_flag  = h
                 self.pb_flag = pb
                 self.Cv_flag = Cv
                 self.deltaz0_flag = deltaz0
-                self.Us_flag = Us
+                self.Us_flag  = Us
                 self.tau_flag = tau
                 self.Q_flag = Q
                 self.phi2s_flag = phi2s
-                self.c_flag = c
-                self.A_flag = A
-                self.n_flag = n
+                self.c_flag  = c
+                self.A_flag  = A
+                self.n_flag  = n
                 self.he_flag = he
                 
                 self.xi = 0
@@ -850,21 +854,21 @@ class runCase:
                 self.get_case()
 
         def get_case(self):
-            self.get_faBoundary()
-            self.get_nEdges()
-            self.get_faces()
-            self.get_points()
-            self.get_lp()
-            self.get_time()
-            self.get_ec()
-            self.get_limits()
-            self.get_edgeOwner()
-            self.get_edgeNeighbour()
-            self.get_parallel_data()
-            self.get_hmin()
-            self.get_n()
-            self.get_c()
-            self.get_A()
+                self.get_faBoundary()
+                self.get_nEdges()
+                self.get_faces()
+                self.get_points()
+                self.get_lp()
+                self.get_time()
+                self.get_ec()
+                self.get_limits()
+                self.get_edgeOwner()
+                self.get_edgeNeighbour()
+                self.get_parallel_data()
+                self.get_hmin()
+                self.get_n()
+                self.get_c()
+                self.get_A()
             
         def get_faBoundary(self, report = True):
                 if report == True:
@@ -1341,9 +1345,9 @@ class runCase:
                 dict = {}
                 read_controlDict(self.p,dict)
                 self.app = dict['application']
-                self.sT = dict['startTime']
-                self.eT = dict['endTime']
-                self.wI = dict['writeInterval']
+                self.sT  = dict['startTime']
+                self.eT  = dict['endTime']
+                self.wI  = dict['writeInterval']
                 self.maxCo = dict['maxCo']
                                         
         def get_releaseArea(self, report = True):
@@ -1402,9 +1406,9 @@ class runCase:
                 self.rF = {}
                 
                 self.app = ''
-                self.sT = ''
-                self.eT = ''
-                self.wI = ''
+                self.sT  = ''
+                self.eT  = ''
+                self.wI  = ''
                 
                 self.clean_tps()
                 
@@ -1482,7 +1486,9 @@ class runCase:
                 self.proc_faceaddr = {}
                 self.proc_edgeaddr = {}
                 self.proc_edgeOwners = {}
-                
+
+
+##########################################  write functions  ##############################################################
 
 def write_dictionary(fi, d, name):
         fi.write("\n")                                
@@ -1558,39 +1564,42 @@ def write_vector(l, fi, key, lvl):
         v += "]"
         fi.write("   "*lvl+v + "\n") 
 
+
+##########################################  outPut class  ##############################################################
+
            
 #This class needs as input a runCase object, which has all the functions to read inputs. Class output performs all the calculations and write the results. //AG             
 class outPut:
         def __init__(self,runCase,d_x,d_y,r_x,r_y,alpha=0,n_iterations=0,alpha_field=0,n_iterations_field=0,dist =0,n_tp=100,rank=0,Sm='off',rho='off',rcg='off',M='off',Vsed ='off',V='off'):
-                self.r = runCase
-                self.x = np.arange(runCase.xi,runCase.xf+d_x,d_x)
-                self.y = np.arange(runCase.yi,runCase.yf+d_y,d_y)
-                self.z = []
+                self.r  = runCase
+                self.x  = np.arange(runCase.xi,runCase.xf+d_x,d_x)
+                self.y  = np.arange(runCase.yi,runCase.yf+d_y,d_y)
+                self.z  = []
                 self.he = [] 
                 self.nz = [] #Probably is not useful //AG
                 self.n0 = [] #Probably is not useful //AG
-                self.t = runCase.t
-                self.p = runCase.p #path
+                self.t  = runCase.t
+                self.p  = runCase.p #path
                 
                 self.face_points = [] #for every face we have the points that form it
-                self.edge_faces = [] #for every face we have the edges that form it
+                self.edge_faces  = [] #for every face we have the edges that form it
                 self.face_neighbour = [] #for every face we have its neighbor
                 self.edges_sense = {}  #defined to deal with the sign problem with Q and phi2s for parallel simulations in the patches type processor.
-                self.edges_list = {}  #defined to deal with the sign problem with Q and phi2s for parallel simulations in the patches type processor.
+                self.edges_list  = {}  #defined to deal with the sign problem with Q and phi2s for parallel simulations in the patches type processor.
                 
-                self.h = []
+                self.h  = []
                 self.pb = []
                 self.Cv = []
                 self.deltah0 = []
                 self.deltac0 = []
-                self.Us = []
+                self.Us  = []
                 self.tau = []
                 self.phi2s = {}  
                 self.Q = {}
                 
-                self.z_tp = {}
+                self.z_tp  = {}
                 self.he_tp = {}
-                self.h_tp = {}
+                self.h_tp  = {}
                 self.Us_m_tp = {}
                 self.deltac0_tp = {}
                 self.deltah0_tp = {}
@@ -1602,13 +1611,13 @@ class outPut:
                 self.tp_index_matrix = {}
                 self.tp_alpha_matrix = {}
                 
-                self.Sm = []
+                self.Sm  = []
                 self.rho = []
                 self.rcg = []
                 self.M = []
-                self.Vsed = []
                 self.V = []
-                
+                self.Vsed = []
+                               
                 self.rF_V = []  #releaseFlow volume input
                 self.rF_M = []  #releaseFlow mass input
                 
@@ -1621,13 +1630,13 @@ class outPut:
                 self.rank = rank
                 self.t_size = []
                 
-                self.Sm_flag = Sm
+                self.Sm_flag  = Sm
                 self.rho_flag = rho
                 self.rcg_flag = rcg
                 self.M_flag = M
-                self.Vsed_flag = Vsed
                 self.V_flag = V
-                
+                self.Vsed_flag = Vsed
+                                
                 self.get_case(r_x,r_y, dist)
 
         def get_case(self,r_x,r_y,dist):
@@ -1642,28 +1651,6 @@ class outPut:
                 self.get_edges()
                 self.get_face_neighbour()
                 self.get_scalar_flux_edges()
-
-#                self.get_z_interpolation()
-#                self.get_he_interpolation()                                                             
-#                self.get_h_interpolation()                
-#                self.get_Cv_interpolation()
-#                self.get_deltaz0_interpolation()                
-#                self.get_Us_interpolation()
-               
-#                self.get_z_tpinterpolation()
-#                self.get_he_tpinterpolation()
-#                self.get_h_tpinterpolation()
-#                self.get_deltaz0_tpinterpolation()
-#                self.get_Us_m_tpinterpolation()
-#                self.get_Q()
-#                
-#                self.get_Sm()
-#                self.get_rho()
-#                self.get_rcg()
-#                self.get_M()
-#                self.get_Vsed()
-#                self.get_V()
-#                self.get_rF_VyM()
                                        
         def order_c(self,c_x,c_y):
                 list = []
