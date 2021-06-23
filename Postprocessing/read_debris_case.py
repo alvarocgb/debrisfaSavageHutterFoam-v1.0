@@ -1581,9 +1581,9 @@ class outPut:
                 self.t  = runCase.t
                 self.p  = runCase.p #path
                 
-                self.face_points = [] #for every face we have the points that form it
-                self.edge_faces  = [] #for every face we have the edges that form it
-                self.face_neighbour = [] #for every face we have its neighbor
+                self.face_points = []  #for every face we have the points that form it
+                self.edge_faces  = []  #for every face we have the edges that form it
+                self.face_neighbour = []  #for every face we have its neighbors
                 self.edges_sense = {}  #defined to deal with the sign problem with Q and phi2s for parallel simulations in the patches type processor.
                 self.edges_list  = {}  #defined to deal with the sign problem with Q and phi2s for parallel simulations in the patches type processor.
                 
@@ -1594,8 +1594,8 @@ class outPut:
                 self.deltac0 = []
                 self.Us  = []
                 self.tau = []
-                self.phi2s = {}  
                 self.Q = {}
+                self.phi2s = {}  
                 
                 self.z_tp  = {}
                 self.he_tp = {}
@@ -1651,7 +1651,9 @@ class outPut:
                 self.get_edges()
                 self.get_face_neighbour()
                 self.get_scalar_flux_edges()
-                                       
+
+##########################################  main functions  ##############################################################
+
         def order_c(self,c_x,c_y):
                 list = []
                 for c in self.r.c['0'].iF.field:
@@ -1704,7 +1706,7 @@ class outPut:
                         sublist.append(list)                               
                     self.index_matrix.append(sublist)
                                                     
-        def get_alpha_matrix(self): #Generates a matrix which elements are list object, each one with a alpha<1 value.
+        def get_alpha_matrix(self): #Generates a matrix which elements are list object, each one with an alpha<1 value.
                 if self.rank == 0:
                     print('Creating alpha matrix ...')                
                 for i in range(len(self.x)):
@@ -1767,87 +1769,7 @@ class outPut:
 
                 self.r.clean_n()
                 self.n0 = []
-                
-        def get_face_points(self): #for very face we have a list with the points that form it
-                if self.rank == 0:
-                    print('Creating face-points list ...')
-                if self.r.faces == {}:
-                    self.r.get_faces(False)
-                if self.r.points == {}:
-                    self.r.get_points(False)
-                for i in range(self.r.nF):
-                    List = self.r.faces['faces'][i]
-                    subList = []
-                    for j in range(len(List)):
-                        p = self.r.points['points'][List[j]]
-                        subList.append(vector(p[0],p[1],p[2]))
-                    self.face_points.append(subList)
-                    
-                self.r.clean_faces()
-                self.r.clean_points()
-                
-        def get_edge_faces(self): #for very face we have a list with the edges that form it
-                if self.rank == 0:
-                    print('Creating edge-faces list ...')
-                if self.r.eO == {}:
-                    self.r.get_edgeOwner(False)
-                if self.r.eN == {}:
-                    self.r.get_edgeNeighbour(False)                
-                for i in range(self.r.nF):
-                    self.edge_faces.append([])
-                list_eO = self.r.eO['edges']
-                list_eN = self.r.eN['edges']
-                for k in range(len(list_eO)):
-                    index = int(list_eO[k])
-                    self.edge_faces[index].append(k)
-                for k in range(len(list_eN)):
-                    index = int(list_eN[k])
-                    self.edge_faces[index].append(k)
-                                        
-        def get_edges(self): #creates self.ec, which is a list of vectors. For every edge one vector, including the boundary edges.
-                if self.rank == 0:    
-                    print('Creating ordered list of edges ...')
-                if self.r.ec == {}:
-                    self.r.get_ec(False)
-                self.order_edges(self.r.ec['0'].iF.field)
-                self.r.clean_ec()
-                
-        def order_edges(self, ec): #order self.edge_faces, now the labels follow the order of face_points
-                for i in range(len(self.edge_faces)):
-                    list = []
-                    for j in range(len(self.edge_faces[i])-1):
-                        point = (self.face_points[i][j]+self.face_points[i][j+1])/2
-                        dist = 10**6
-                        for k in range(len(self.edge_faces[i])):
-                            if distxy(point,ec[self.edge_faces[i][k]]) <= dist:
-                                dist = distxy(point,ec[self.edge_faces[i][k]])
-                                index = self.edge_faces[i][k]
-                        list.append(index)
-                        
-                    point = (self.face_points[i][-1]+self.face_points[i][0])/2
-                    dist = 10**6
-                    for k in range(len(self.edge_faces[i])):
-                        if distxy(point,ec[self.edge_faces[i][k]]) < dist:
-                            dist = distxy(point,ec[self.edge_faces[i][k]])
-                            index = self.edge_faces[i][k]
-                    list.append(index)
-                    self.edge_faces[i] = list
-                    
-        def get_face_neighbour(self): #creates a list of lists, where every list have the labels of the neighbour faces
-                if self.rank == 0:    
-                    print('Creating face neighbours list ...')
-                if self.r.eO == {}:
-                    self.r.get_edgeOwner(False)
-                if self.r.eN == {}:
-                    self.r.get_edgeNeighbour(False)                
-                for i in range(self.r.nF):
-                    self.face_neighbour.append([])                
-                list_eO = self.r.eO['edges']
-                list_eN = self.r.eN['edges']
-                for k in range(len(list_eN)):
-                    self.face_neighbour[int(list_eO[k])].append(int(list_eN[k]))
-                    self.face_neighbour[int(list_eN[k])].append(int(list_eO[k]))
-                    
+
         def get_longitudinal_profiles(self):
                 if self.r.lp_name != '':
                     if self.rank == 0:
@@ -1954,6 +1876,187 @@ class outPut:
                         
                         self.r.clean_tp()
                     self.r.clean_lp()
+
+        def get_tp_index_matrix(self):
+                if self.r.lp_name != '':
+                    if self.rank == 0:
+                        print('Creating transversal profiles index matrix ...')
+                    for key in self.tp.keys():
+                        tp = self.tp[key]
+                        tp_index_matrix = []
+                        for i in range(len(tp)):
+                            sub_index = []
+                            for j in range(self.n_tp+1):
+                                 v = tp[i][j]
+                                 [i_x, i_y] = self.get_coords(v)
+                                 list = []
+                                 for k in range(len(self.index_matrix[i_x][i_y])):
+                                     list.append(self.index_matrix[i_x][i_y][k])
+                                 for k in range(len(self.index_matrix[i_x+1][i_y])):
+                                     list.append(self.index_matrix[i_x+1][i_y][k])
+                                 for k in range(len(self.index_matrix[i_x+1][i_y+1])):
+                                     list.append(self.index_matrix[i_x+1][i_y+1][k])
+                                 for k in range(len(self.index_matrix[i_x][i_y+1])):
+                                     list.append(self.index_matrix[i_x][i_y+1][k])
+                                 
+                                 list.sort()
+                                 new_list = [list[0]]
+                                 for k in range(len(list)-1):
+                                     if list[k+1] != new_list[-1]:
+                                         new_list.append(list[k+1])
+                                 sub_index.append(new_list)
+                            tp_index_matrix.append(sub_index)
+                        
+                        self.tp_index_matrix[key] = tp_index_matrix
+
+        def get_tp_alpha_matrix(self): #Generates a matrix which elements are list objects, each one with a alpha<1 value.
+                if self.r.lp_name != '':
+                    if self.rank == 0:
+                        print('Creating transversal profiles alpha matrix ...') 
+                    for key in self.tp.keys():
+                        tp = self.tp[key]
+                        tp_alpha_matrix = []
+                        for i in range(len(tp)):
+                            sub_index = []
+                            for j in range(self.n_tp+1):
+                                list = []
+                                v = tp[i][j]
+                                l = 0
+                                for index in self.tp_index_matrix[key][i][j]:
+                                    l += (1/(distxy(v,self.r.c['0'].iF.field[index])+10**-6))**2
+                                k = 0
+                                while True:
+                                    index = self.tp_index_matrix[key][i][j][k]
+                                    alpha = ((1/(distxy(v,self.r.c['0'].iF.field[index])+10**-6))**2)/l
+                                    if alpha < 0.01:
+                                        pop = self.tp_index_matrix[key][i][j].pop(k)
+                                    else:
+                                        k += 1
+                                    if k == len(self.tp_index_matrix[key][i][j]):
+                                        break
+                                l = 0
+                                for index in self.tp_index_matrix[key][i][j]:
+                                    l += (1/(distxy(v,self.r.c['0'].iF.field[index])+10**-6))**2                                
+                                for index in self.tp_index_matrix[key][i][j]:
+                                    alpha = ((1/(distxy(v,self.r.c['0'].iF.field[index])+10**-6))**2)/l                                    
+                                    list.append(round(alpha,6))                             
+                                sub_index.append(list)
+                            tp_alpha_matrix.append(sub_index)
+                        
+                        self.tp_alpha_matrix[key] = tp_alpha_matrix   
+
+        def get_face_points(self): #for very face we have a list with the points that form it
+                if self.rank == 0:
+                    print('Creating face-points list ...')
+                if self.r.faces == {}:
+                    self.r.get_faces(False)
+                if self.r.points == {}:
+                    self.r.get_points(False)
+                for i in range(self.r.nF):
+                    List = self.r.faces['faces'][i]
+                    subList = []
+                    for j in range(len(List)):
+                        p = self.r.points['points'][List[j]]
+                        subList.append(vector(p[0],p[1],p[2]))
+                    self.face_points.append(subList)
+                    
+                self.r.clean_faces()
+                self.r.clean_points()
+                
+        def get_edge_faces(self): #for very face we have a list with the edges that form it
+                if self.rank == 0:
+                    print('Creating edge-faces list ...')
+                if self.r.eO == {}:
+                    self.r.get_edgeOwner(False)
+                if self.r.eN == {}:
+                    self.r.get_edgeNeighbour(False)                
+                for i in range(self.r.nF):
+                    self.edge_faces.append([])
+                list_eO = self.r.eO['edges']
+                list_eN = self.r.eN['edges']
+                for k in range(len(list_eO)):
+                    index = int(list_eO[k])
+                    self.edge_faces[index].append(k)
+                for k in range(len(list_eN)):
+                    index = int(list_eN[k])
+                    self.edge_faces[index].append(k)
+                                        
+        def get_edges(self): #creates self.ec, which is a list of vectors. For every edge one vector, including the boundary edges.
+                if self.rank == 0:    
+                    print('Creating ordered list of edges ...')
+                if self.r.ec == {}:
+                    self.r.get_ec(False)
+                self.order_edges(self.r.ec['0'].iF.field)
+                self.r.clean_ec()
+                
+        def order_edges(self, ec): #order self.edge_faces, now the labels follow the order of face_points
+                for i in range(len(self.edge_faces)):
+                    list = []
+                    for j in range(len(self.edge_faces[i])-1):
+                        point = (self.face_points[i][j]+self.face_points[i][j+1])/2
+                        dist = 10**6
+                        for k in range(len(self.edge_faces[i])):
+                            if distxy(point,ec[self.edge_faces[i][k]]) <= dist:
+                                dist = distxy(point,ec[self.edge_faces[i][k]])
+                                index = self.edge_faces[i][k]
+                        list.append(index)
+                        
+                    point = (self.face_points[i][-1]+self.face_points[i][0])/2
+                    dist = 10**6
+                    for k in range(len(self.edge_faces[i])):
+                        if distxy(point,ec[self.edge_faces[i][k]]) < dist:
+                            dist = distxy(point,ec[self.edge_faces[i][k]])
+                            index = self.edge_faces[i][k]
+                    list.append(index)
+                    self.edge_faces[i] = list
+                    
+        def get_face_neighbour(self): #creates a list of lists, where every list have the labels of the neighbour faces
+                if self.rank == 0:    
+                    print('Creating face neighbours list ...')
+                if self.r.eO == {}:
+                    self.r.get_edgeOwner(False)
+                if self.r.eN == {}:
+                    self.r.get_edgeNeighbour(False)                
+                for i in range(self.r.nF):
+                    self.face_neighbour.append([])                
+                list_eO = self.r.eO['edges']
+                list_eN = self.r.eN['edges']
+                for k in range(len(list_eN)):
+                    self.face_neighbour[int(list_eO[k])].append(int(list_eN[k]))
+                    self.face_neighbour[int(list_eN[k])].append(int(list_eO[k]))
+
+        def get_scalar_flux_edges(self):
+                if self.r.lp_name != '':
+                    if (self.r.Q_flag == 'on' or self.r.Q_flag == 'yes' or self.r.Q_flag == True) or (self.r.phi2s_flag == 'on' or self.r.phi2s_flag == 'yes' or self.r.phi2s_flag == True):
+                        if self.rank == 0:
+                            print('Calculating edges in flux-transversal profiles ...')            
+                        points = self.get_points_tps()
+                        dx = math.sqrt(4/math.pi*(self.x[-1]-self.x[0])*(self.y[-1]-self.y[0])/self.r.nF)
+        
+                        if self.r.eO == {}:
+                            self.r.get_edgeOwner(False)
+                        if self.r.eN == {}:
+                            self.r.get_edgeNeighbour(False) 
+                        
+                        for key in points.keys():
+                            edges_sense_list = []
+                            edges_list = []
+                            for p in range(len(points[key])):
+                                list_faces = self.get_faces_tp(points[key][p][0],points[key][p][1],dx)                        
+                                [list_points,list_faces] = self.get_points_tp(list_faces,points[key][p][0],points[key][p][1])
+                                [list_edges,list_points] = self.get_edges_tp(list_faces,list_points)
+                                edges_sense = self.get_edges_sense(list_edges,list_points, dx)
+                                
+                                edges_list.append(list_edges)
+                                edges_sense_list.append(edges_sense)
+                                
+                            self.edges_sense[key] = edges_sense_list
+                            self.edges_list[key] = edges_list
+                            
+                        self.r.clean_edgeON()                    
+
+
+######################################  lp and tp plot functions  ##############################################################
 
         def plot_longitudinal_profiles(self):
                 figure = plt.figure(figsize = (5,10))
@@ -2219,73 +2322,8 @@ class outPut:
                     figure.savefig(path+'/'+'zplot')
                     plt.close(figure)
 
-        def get_tp_index_matrix(self):
-                if self.r.lp_name != '':
-                    if self.rank == 0:
-                        print('Creating transversal profiles index matrix ...')
-                    for key in self.tp.keys():
-                        tp = self.tp[key]
-                        tp_index_matrix = []
-                        for i in range(len(tp)):
-                            sub_index = []
-                            for j in range(self.n_tp+1):
-                                 v = tp[i][j]
-                                 [i_x, i_y] = self.get_coords(v)
-                                 list = []
-                                 for k in range(len(self.index_matrix[i_x][i_y])):
-                                     list.append(self.index_matrix[i_x][i_y][k])
-                                 for k in range(len(self.index_matrix[i_x+1][i_y])):
-                                     list.append(self.index_matrix[i_x+1][i_y][k])
-                                 for k in range(len(self.index_matrix[i_x+1][i_y+1])):
-                                     list.append(self.index_matrix[i_x+1][i_y+1][k])
-                                 for k in range(len(self.index_matrix[i_x][i_y+1])):
-                                     list.append(self.index_matrix[i_x][i_y+1][k])
-                                 
-                                 list.sort()
-                                 new_list = [list[0]]
-                                 for k in range(len(list)-1):
-                                     if list[k+1] != new_list[-1]:
-                                         new_list.append(list[k+1])
-                                 sub_index.append(new_list)
-                            tp_index_matrix.append(sub_index)
-                        
-                        self.tp_index_matrix[key] = tp_index_matrix
 
-        def get_tp_alpha_matrix(self): #Generates a matrix which elements are list objects, each one with a alpha<1 value.
-                if self.r.lp_name != '':
-                    if self.rank == 0:
-                        print('Creating transversal profiles alpha matrix ...') 
-                    for key in self.tp.keys():
-                        tp = self.tp[key]
-                        tp_alpha_matrix = []
-                        for i in range(len(tp)):
-                            sub_index = []
-                            for j in range(self.n_tp+1):
-                                list = []
-                                v = tp[i][j]
-                                l = 0
-                                for index in self.tp_index_matrix[key][i][j]:
-                                    l += (1/(distxy(v,self.r.c['0'].iF.field[index])+10**-6))**2
-                                k = 0
-                                while True:
-                                    index = self.tp_index_matrix[key][i][j][k]
-                                    alpha = ((1/(distxy(v,self.r.c['0'].iF.field[index])+10**-6))**2)/l
-                                    if alpha < 0.01:
-                                        pop = self.tp_index_matrix[key][i][j].pop(k)
-                                    else:
-                                        k += 1
-                                    if k == len(self.tp_index_matrix[key][i][j]):
-                                        break
-                                l = 0
-                                for index in self.tp_index_matrix[key][i][j]:
-                                    l += (1/(distxy(v,self.r.c['0'].iF.field[index])+10**-6))**2                                
-                                for index in self.tp_index_matrix[key][i][j]:
-                                    alpha = ((1/(distxy(v,self.r.c['0'].iF.field[index])+10**-6))**2)/l                                    
-                                    list.append(round(alpha,6))                             
-                                sub_index.append(list)
-                            tp_alpha_matrix.append(sub_index)
-                        
-                        self.tp_alpha_matrix[key] = tp_alpha_matrix                             
+##########################################  tp interpolation functions  ##############################################################                          
                                                                   
         def get_scalarinput_tpinterpolation(self, field, output_field, key, time, ix = -1):
                 if time == -1:
@@ -2373,19 +2411,6 @@ class outPut:
                                 h_tp = np.zeros((len(self.tp[key]),self.n_tp+1))
                             self.get_scalarinput_tpinterpolation(self.r.h, h_tp, key, time)
                             self.h_tp[key] = h_tp
-
-        def get_Us_m_tpinterpolation(self, report = True, time = -1):
-                if self.r.lp_name != '':
-                    if (self.r.Us_flag == 'on' or self.r.Us_flag == 'yes' or self.r.Us_flag == True):
-                        if report == True:
-                            print('Interpolating Us field in transversal profiles ...')
-                        for key in self.tp.keys():
-                            if time == -1:
-                                Us_m_tp = np.zeros((len(self.t),len(self.tp[key]),self.n_tp+1))
-                            else:
-                                Us_m_tp = np.zeros((len(self.tp[key]),self.n_tp+1))
-                            self.get_vectorinput_tpinterpolation(self.r.Us, Us_m_tp, key, time)
-                            self.Us_m_tp[key] = Us_m_tp
     
         def get_deltaz0_tpinterpolation(self, report = True, time = -1):
                 if self.r.lp_name != '':
@@ -2423,25 +2448,22 @@ class outPut:
                         self.get_scalarinput_tpinterpolation(self.r.deltac0, deltac0_tp, key, time)
                         self.deltac0_tp[key] = deltac0_tp
 
-#        def get_h_tpinterpolation_corrected(self, report = True, time = -1):
-#                if (self.r.h_flag == 'on' or self.r.h_flag == 'yes' or self.r.h_flag == True):
-#                    if report == True:
-#                        print('Interpolating h corrected field in transversal profiles...')
-#                    for key in self.tp.keys():
-#                        if time == -1:
-#                            h_tp = np.zeros((len(self.t),len(self.tp[key]),self.n_tp+1))
-#                        else:
-#                            h_tp = np.zeros((len(self.tp[key]),self.n_tp+1))
-#                        nz_tp = np.zeros((len(self.tp[key]),self.n_tp+1))
-#                        self.get_scalar_field_tpinterpolation(self.nz, nz_tp, key)
-#                        self.get_scalarinput_tpinterpolation(self.h, h_tp, key, time)
-#                        if time == -1:
-#                            for t in range(len(self.t)):
-#                                h_tp[t,:,:] = h_tp[t,:,:]*nz_tp
-#                        else:
-#                            h_tp = h_tp*nz_tp
-#                        self.h_tp_corrected[key] = h_tp
-                                
+        def get_Us_m_tpinterpolation(self, report = True, time = -1):
+                if self.r.lp_name != '':
+                    if (self.r.Us_flag == 'on' or self.r.Us_flag == 'yes' or self.r.Us_flag == True):
+                        if report == True:
+                            print('Interpolating Us field in transversal profiles ...')
+                        for key in self.tp.keys():
+                            if time == -1:
+                                Us_m_tp = np.zeros((len(self.t),len(self.tp[key]),self.n_tp+1))
+                            else:
+                                Us_m_tp = np.zeros((len(self.tp[key]),self.n_tp+1))
+                            self.get_vectorinput_tpinterpolation(self.r.Us, Us_m_tp, key, time)
+                            self.Us_m_tp[key] = Us_m_tp
+
+
+##########################################  tp plot functions  ##############################################################                          
+
         def plot_h_tp(self, key, t, index, xmin = -1, xmax = -1):
                 j = self.t.index(t)
                 h_tp = self.h_tp[key][j,index,:]
@@ -2590,7 +2612,10 @@ class outPut:
                     path = self.p+'/images'
                     fig.savefig(path+'/'+name+'_tp_time_index_'+str(index))
                     plt.close(fig)
-                                                  
+
+
+##########################################  field interpolation functions  ##########################################################                          
+
         def get_h_interpolation(self, report = True, time = -1):
                 if (self.r.h_flag == 'on' or self.r.h_flag == 'yes' or self.r.h_flag == True):
                     if report == True:
@@ -2742,6 +2767,9 @@ class outPut:
                 surface_smoother(vector_field[:,:,0],output_field[:,:,0],alpha,n_iterations)
                 surface_smoother(vector_field[:,:,1],output_field[:,:,1],alpha,n_iterations)
                 surface_smoother(vector_field[:,:,2],output_field[:,:,2],alpha,n_iterations)
+
+
+##########################################  field plot functions  ##########################################################
 
         def plot_z(self):
                 self.plot_field(-1, self.z)
@@ -2979,6 +3007,9 @@ class outPut:
         def plot_rho(self,t, lim = False, lim_min = 0, lim_max = 1, clip = False, xmin = 0, xmax = 0, ymin = 0, ymax = 0):
                 self.plot_field(t,self.rho, lim, lim_min, lim_max, clip, xmin, xmax, ymin, ymax)
 
+
+##########################################  fluxes functions  ##########################################################
+
 ##The following three functions where useful in the past.
 #        def plot_face(self,index,plot = True):
 #                face_points = self.face_points[index]
@@ -3051,36 +3082,6 @@ class outPut:
                             if (str(time) in self.r.Q.keys()) == False:
                                 self.r.get_Q(False, time)
                         self.get_scalar_flux(self.r.Q, self.Q, time)
-
-        def get_scalar_flux_edges(self):
-                if self.r.lp_name != '':
-                    if (self.r.Q_flag == 'on' or self.r.Q_flag == 'yes' or self.r.Q_flag == True) or (self.r.phi2s_flag == 'on' or self.r.phi2s_flag == 'yes' or self.r.phi2s_flag == True):
-                        if self.rank == 0:
-                            print('Calculating edges in flux-transversal profiles ...')            
-                        points = self.get_points_tps()
-                        dx = math.sqrt(4/math.pi*(self.x[-1]-self.x[0])*(self.y[-1]-self.y[0])/self.r.nF)
-        
-                        if self.r.eO == {}:
-                            self.r.get_edgeOwner(False)
-                        if self.r.eN == {}:
-                            self.r.get_edgeNeighbour(False) 
-                        
-                        for key in points.keys():
-                            edges_sense_list = []
-                            edges_list = []
-                            for p in range(len(points[key])):
-                                list_faces = self.get_faces_tp(points[key][p][0],points[key][p][1],dx)                        
-                                [list_points,list_faces] = self.get_points_tp(list_faces,points[key][p][0],points[key][p][1])
-                                [list_edges,list_points] = self.get_edges_tp(list_faces,list_points)
-                                edges_sense = self.get_edges_sense(list_edges,list_points, dx)
-                                
-                                edges_list.append(list_edges)
-                                edges_sense_list.append(edges_sense)
-                                
-                            self.edges_sense[key] = edges_sense_list
-                            self.edges_list[key] = edges_list
-                            
-                        self.r.clean_edgeON()
                                    
         def get_scalar_flux(self, flux, dict, time):                
                 for key in self.edges_list.keys():
@@ -3331,6 +3332,9 @@ class outPut:
                     if self.edge_faces[index1][i] in self.edge_faces[index2]:
                         return i
 
+
+########################################  fluxes plot functions  #########################################################
+
         def plot_Q_tp(self,key_list,index,deltax_axis = 20,deltay_axis = 20,save = False):
                 self.plot_lpfield_tp(key_list,index,self.Q,'Q','m³/s',deltax_axis,deltay_axis,save)
 
@@ -3484,8 +3488,11 @@ class outPut:
 #                        sub_x.append(self.Q[key]['list_points_tp'][i][j].x)
 #                        sub_y.append(self.Q[key]['list_points_tp'][i][j].y)
 #                    plt.plot(sub_y,sub_x)
-                    
-        def get_Sm(self, report = True, time = -1):        
+
+
+########################################  some extra functions  #########################################################
+
+        def get_Sm(self, report = True, time = -1): # Entrainment rate as a scalar field  
                 if (self.Sm_flag == 'on' or self.Sm_flag == 'yes' or self.Sm_flag == True):
                     if report == True:
                         print('Calculating Sm field ...')
@@ -3547,7 +3554,7 @@ class outPut:
                                     
                     self.r.clean_eM()
 
-        def get_rho(self, report = True, time = -1):        
+        def get_rho(self, report = True, time = -1):  # density as a scalar field 
                 if (self.rho_flag == 'on' or self.rho_flag == 'yes' or self.rho_flag == True):
                     if report == True:
                         print('Calculating rho field ...')
@@ -3587,7 +3594,7 @@ class outPut:
                     
                 return f
 
-        def get_rcg(self, report = True, time = -1):        
+        def get_rcg(self, report = True, time = -1):  #center of gravity of the whole fluid     
                 if (self.rcg_flag == 'on' or self.rcg_flag == 'yes' or self.rcg_flag == True):
                     if report == True:
                         print('Calculating center of gravity of the flux in the whole domain ...')
@@ -3637,7 +3644,7 @@ class outPut:
                         self.rcg[0,1] = sum_num.y/sum_den
                         self.rcg[0,2] = sum_num.z/sum_den
 
-        def get_M(self, report = True, time = -1):        
+        def get_M(self, report = True, time = -1): #Mass of the whole fluid   
                 if (self.M_flag == 'on' or self.M_flag == 'yes' or self.M_flag == True):
                     if report == True:
                         print('Calculating Mass of flux in the whole domain ...')
@@ -3674,6 +3681,40 @@ class outPut:
                             sum += (self.r.rho_w+Cv[i]*(self.r.rho_s-self.r.rho_w))*A[i]*(h[i]-self.r.hmin)
                                     
                         self.M[0,0] = sum
+
+        def get_V(self, report = True, time = -1):        
+                if (self.V_flag == 'on' or self.V_flag == 'yes' or self.V_flag == True):
+                    if report == True:
+                        print('Calculating Volume of flux in the whole domain ...')
+                    if time == -1:
+                        self.V = np.zeros((len(self.t),1))
+                    else:
+                        self.V = np.zeros((1,1))
+
+                    if self.r.A == {}:
+                        self.r.get_A(False,0)
+                    if self.r.hmin == -1:
+                        self.r.get_hmin(False)
+                        
+                    A = self.r.A['0'].iF.field
+
+                    if time == -1:
+                        for t in range(len(self.t)):
+                            h = self.get_field_t(self.t[t],self.r.h, self.r.get_h)
+                                                        
+                            sum = 0
+                            for i in range(self.r.nF):
+                                sum += A[i]*(h[i]-self.r.hmin)
+                                    
+                            self.V[t,0] = sum
+                    else:
+                        h = self.get_field_t(time,self.r.h, self.r.get_h)
+                                                    
+                        sum = 0
+                        for i in range(self.r.nF):
+                            sum += A[i]*(h[i]-self.r.hmin)
+                                    
+                        self.V[0,0] = sum
 
         def get_Vsed(self, report = True, time = -1):        
                 if (self.Vsed_flag == 'on' or self.Vsed_flag == 'yes' or self.Vsed_flag == True):
@@ -3731,73 +3772,6 @@ class outPut:
                         
                     self.r.clean_tps()
 
-        def get_V(self, report = True, time = -1):        
-                if (self.V_flag == 'on' or self.V_flag == 'yes' or self.V_flag == True):
-                    if report == True:
-                        print('Calculating Volume of flux in the whole domain ...')
-                    if time == -1:
-                        self.V = np.zeros((len(self.t),1))
-                    else:
-                        self.V = np.zeros((1,1))
-
-                    if self.r.A == {}:
-                        self.r.get_A(False,0)
-                    if self.r.hmin == -1:
-                        self.r.get_hmin(False)
-                        
-                    A = self.r.A['0'].iF.field
-
-                    if time == -1:
-                        for t in range(len(self.t)):
-                            h = self.get_field_t(self.t[t],self.r.h, self.r.get_h)
-                                                        
-                            sum = 0
-                            for i in range(self.r.nF):
-                                sum += A[i]*(h[i]-self.r.hmin)
-                                    
-                            self.V[t,0] = sum
-                    else:
-                        h = self.get_field_t(time,self.r.h, self.r.get_h)
-                                                    
-                        sum = 0
-                        for i in range(self.r.nF):
-                            sum += A[i]*(h[i]-self.r.hmin)
-                                    
-                        self.V[0,0] = sum
-
-        def plot_M(self,firstvalue= 0,save = False):
-                self.plot_timefield(self.M, 'M', 'kg', firstvalue, save)
-
-        def plot_V(self,firstvalue= 0,save = False):
-                self.plot_timefield(self.V, 'V', 'm³', firstvalue, save)
-                
-        def plot_Vsed(self,firstvalue= 0,save = False):
-                self.plot_timefield(self.Vsed, 'Vsed', 'm³', firstvalue, save)
-
-        def plot_rcg_x(self,firstvalue= 0,save = False):
-                self.plot_timefield(self.rcg[:,0], 'rcg_x', 'm', firstvalue, save, True, self.x[0], self.x[-1])
-
-        def plot_rcg_y(self,firstvalue= 0,save = False):
-                self.plot_timefield(self.rcg[:,1], 'rcg_y', 'm', firstvalue, save, True, self.y[0], self.y[-1])
-
-        def plot_rcg_z(self,firstvalue= 0,save = False):
-                self.plot_timefield(self.rcg[:,2], 'rcg_z', 'm', firstvalue, save)                
-                
-        def plot_timefield(self, field, name, units, firstvalue, save, clip = False, ymin = 0, ymax = 0):
-                fig, ax = plt.subplots(figsize=(5, 10))
-                plt.plot(self.t[firstvalue:] ,field[firstvalue:])
-                plt.xlim([0, self.t[-1]])
-                if clip == True:
-                    plt.ylim([ymin,  ymax])
-                plt.grid(True)
-#                plt.title('',fontsize = 17); 
-                plt.xlabel('t (s)'); plt.ylabel(name +' ('+ units+')')
-
-                if save == True:
-                    path = self.p+'/images'
-                    fig.savefig(path+'/'+name)
-                    plt.close(fig)
-
         def get_rF_VyM(self, report = True):
                 if report == True:
                         print('Calculating Volume and Mass entering to the geometric domain ...')
@@ -3846,6 +3820,42 @@ class outPut:
 
                 self.r.rF = {}
 
+
+########################################  some extra plot functions  #########################################################
+
+        def plot_M(self,firstvalue= 0,save = False):
+                self.plot_timefield(self.M, 'M', 'kg', firstvalue, save)
+
+        def plot_V(self,firstvalue= 0,save = False):
+                self.plot_timefield(self.V, 'V', 'm³', firstvalue, save)
+                
+        def plot_Vsed(self,firstvalue= 0,save = False):
+                self.plot_timefield(self.Vsed, 'Vsed', 'm³', firstvalue, save)
+
+        def plot_rcg_x(self,firstvalue= 0,save = False):
+                self.plot_timefield(self.rcg[:,0], 'rcg_x', 'm', firstvalue, save, True, self.x[0], self.x[-1])
+
+        def plot_rcg_y(self,firstvalue= 0,save = False):
+                self.plot_timefield(self.rcg[:,1], 'rcg_y', 'm', firstvalue, save, True, self.y[0], self.y[-1])
+
+        def plot_rcg_z(self,firstvalue= 0,save = False):
+                self.plot_timefield(self.rcg[:,2], 'rcg_z', 'm', firstvalue, save)                
+                
+        def plot_timefield(self, field, name, units, firstvalue, save, clip = False, ymin = 0, ymax = 0):
+                fig, ax = plt.subplots(figsize=(5, 10))
+                plt.plot(self.t[firstvalue:] ,field[firstvalue:])
+                plt.xlim([0, self.t[-1]])
+                if clip == True:
+                    plt.ylim([ymin,  ymax])
+                plt.grid(True)
+#                plt.title('',fontsize = 17); 
+                plt.xlabel('t (s)'); plt.ylabel(name +' ('+ units+')')
+
+                if save == True:
+                    path = self.p+'/images'
+                    fig.savefig(path+'/'+name)
+                    plt.close(fig)
+
         def plot_M_net(self, save = False, clip = False, ymin = 0, ymax = 0):
                 if self.r.rho_b == -1:
                     self.r.get_densities(False)
@@ -3889,7 +3899,10 @@ class outPut:
                     path = self.p+'/images'
                     fig.savefig(path+'/'+'V_net')
                     plt.close(fig) 
-            
+
+
+########################################  writing functions  #########################################################
+
         def create_t_size(self, size):
                 for i in range(size):
                     sub_list = []
@@ -4321,6 +4334,7 @@ class outPut:
                     self.write_scalarfield(path, name+'_z', field[:,:,2], time, nround)                    
 
 
+########################################  extra functions  #########################################################
                            
 def get_list(list, xy, r_xy, c_xy, nTotal, nInter):
     i_inf = 1; i_sup = 1
@@ -4449,7 +4463,7 @@ def face_in(List,v):
         is_in = False                
     return is_in
 
-def get_closer_point(m,P0,P1,P2): #determine which point, P1 or P2 is the closest to P0
+def get_closer_point(m,P0,P1,P2): #determines which point, P1 or P2, is the closest to P0
     dp1 = abs(m*(P1.x-P0.x)+P0.y-P1.y)/math.sqrt(m**2+1)
     dp2 = abs(m*(P2.x-P0.x)+P0.y-P2.y)/math.sqrt(m**2+1)
     if dp1 > dp2:
@@ -4558,6 +4572,9 @@ def sign(x):
     elif float(x) == 0:
         return 0
 
+
+########################################  main function  #########################################################
+
 def clean_dir(path, dir, rank = 0):
     if rank == 0:
         listdir = os.listdir(path)
@@ -4655,25 +4672,25 @@ def main(argv):
     parser.add_argument('-rho_flag', help='Activate rho calculation', action="store_true")
     parser.add_argument('-rcg_flag', help='Activate rcg calculation', action="store_true")
     parser.add_argument('-M_flag', help='Activate M calculation', action="store_true")
-    parser.add_argument('-Vsed_flag', help='Activate Vsed calculation', action="store_true")
     parser.add_argument('-V_flag', help='Activate V calculation', action="store_true")
-
+    parser.add_argument('-Vsed_flag', help='Activate Vsed calculation', action="store_true")
+    
     args = parser.parse_args()
 
     input_path = args.path
     
-    h = args.h_flag
+    h  = args.h_flag
     pb = args.pb_flag
     Cv = args.Cv_flag
     deltaz0 = args.deltaz0_flag
-    Us = args.Us_flag
+    Us  = args.Us_flag
     tau = args.tau_flag
     phi2s = args.phi2s_flag
-    Q = args.Q_flag
-    c = args.c_flag
-    n = args.n_flag
+    Q  = args.Q_flag
+    c  = args.c_flag
+    n  = args.n_flag
     he = args.he_flag
-    A = args.A_flag
+    A  = args.A_flag
         
     lp = args.lp
     tp = args.tp
@@ -4687,13 +4704,13 @@ def main(argv):
     niterfield = args.niterfield
     dist = args.dist
     ntp = args.ntp
-    Sm = args.Sm_flag
+    Sm  = args.Sm_flag
     rho = args.rho_flag
     rcg = args.rcg_flag
     M = args.M_flag
-    Vsed = args.Vsed_flag
     V = args.V_flag
-
+    Vsed = args.Vsed_flag
+    
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
@@ -4710,7 +4727,7 @@ def main(argv):
 
     if rank == 0:
         shutil.copy(input_path+'/constant/transportProperties', output_path+'/transportProperties')
-        #Be careful with this line, because if the file does not exists the code will fail //AG
+        #Be careful with the following line, because if the file does not exist the code will fail //AG
         shutil.copy(input_path+'/log.debrisfaSavageHutterFoam', output_path+'/log.debrisfaSavageHutterFoam')
     write_summary(output_path,lp,tp,dx,dy,rx,ry,alpha,niter,alphafield,niterfield,dist,ntp,rank)
 
@@ -4727,5 +4744,5 @@ def main(argv):
 
     print('Rank = ' + str(o.rank)+'  ended at = ' + str(date(time.gmtime())))
 
-#if __name__ == "__main__":
-#   main(sys.argv[1:]) 
+if __name__ == "__main__":
+  main(sys.argv[1:]) 
