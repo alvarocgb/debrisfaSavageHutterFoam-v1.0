@@ -14,7 +14,7 @@ $(deposition)/depositionModel/depositionModel.C
 $(deposition)/depositionModel/depositionModelNew.C
 $(deposition)/depositionOff/depositionOff.C
 $(deposition)/Stoppingprofile/Stoppingprofile.C
-$(deposition)/Takahashi/Takahashi.C
+$(deposition)/Uchida/Uchida.C
 
 entrainment = entrainment
 $(entrainment)/entrainmentModel/entrainmentModel.C
