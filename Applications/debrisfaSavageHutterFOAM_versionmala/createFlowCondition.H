@@ -4,28 +4,28 @@ forAll(boundaryNames, boundaryI)
 
 	dictionary subHidrogram = Hidrograms.subDict(boundaryName);
 
-	List<scalar> subwide = subHidrogram.lookup("wide");
+	List<scalar> subwide  = subHidrogram.lookup("wide");
 	List<scalar> subslope = subHidrogram.lookup("slope");
 	List<vector> subdirections = subHidrogram.lookup("directions");
-	List<scalar> subheight = subHidrogram.lookup("heights");
+	List<scalar> subheight = subHidrogram.lookup("heights");	
+	List<scalar> subtimes  = subHidrogram.lookup("times");
+	List<scalar> subflows  = subHidrogram.lookup("flows");
+	List<scalar> subCvs = subHidrogram.lookup("Cvs");	
 	scalar alpha = subHidrogram.lookupOrDefault<scalar>("alpha",0);
-	List<scalar> subtimes = subHidrogram.lookup("times");
-	List<scalar> subflows = subHidrogram.lookup("flows");
-	List<scalar> subCvs = subHidrogram.lookup("Cvs");
 
 	label t = runTime.timeOutputValue();
 
-	float Qt = 0;
+	float Qt  = 0;
 	float Cvt = 0;
 	label i = 0;
 	label j = subtimes.size()-1;
 
 	if (t<subtimes[i])
-        {
-            FatalIOErrorIn("createFlowCondition.H", releaseFlow)
-                << "Time " << runTime.timeName() << "s is not a"
-                << " valid time for the introduced hidrograph." << exit(FatalIOError);
-        }
+    {
+		FatalIOErrorIn("createFlowCondition.H", releaseFlow)
+			<< "Time " << runTime.timeName() << "s is not a"
+			<< " valid time for the introduced hidrograph." << exit(FatalIOError);
+    }
 	else if (t<= subtimes[j])
 	{
 		while(j-i>1)
@@ -44,7 +44,7 @@ forAll(boundaryNames, boundaryI)
 			{
 				i = n;
 			}
-        	}
+        }
 		Qt = subflows[i]+(subflows[j]-subflows[i])/(subtimes[j]-subtimes[i]+SMALL)*(t-subtimes[i]);
 		Cvt = subCvs[i]+(subCvs[j]-subCvs[i])/(subtimes[j]-subtimes[i]+SMALL)*(t-subtimes[i]);
 	}
@@ -55,10 +55,10 @@ forAll(boundaryNames, boundaryI)
 	}
 
 	float rhot = (1-Cvt)*rho_w.value()+Cvt*rho_s.value();
-	float Cwt = 1-Cvt;
+	float Cwt  = 1-Cvt;
 
 	const scalar & ut = friction->ut(Qt*alpha, subwide, subslope, rhot, boundaryName);	
-        const List<scalar> & ht = friction->ht(Qt*alpha, subwide, subslope, subheight, rhot, boundaryName);
+    const List<scalar> & ht = friction->ht(Qt*alpha, subwide, subslope, subheight, rhot, boundaryName);
 
 	label length(faBoundaries[faboundaryNames.find(boundaryName)].size());
 	label index(faboundaryNames.find(boundaryName));

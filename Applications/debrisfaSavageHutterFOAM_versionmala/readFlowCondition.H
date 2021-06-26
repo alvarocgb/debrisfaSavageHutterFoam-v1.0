@@ -37,8 +37,8 @@ faBoundaryMesh faBoundaries
     (
         "faBoundary",
         runTime.constant(),
-	"faMesh",
-	mesh,
+		"faMesh",
+		mesh,
         IOobject::MUST_READ,
         IOobject::NO_WRITE
     ),
@@ -55,24 +55,24 @@ forAll(boundaryNames, boundaryI)
 	const entry& boundaryInfo = boundaries[boundaryI];
 	
 	if (!boundaryInfo.isDict())
-        {
-            FatalIOErrorIn("readFlowCondition.H", releaseFlow)
-                << "Entry " << boundaryInfo << " in boundaries section is not a"
-                << " valid dictionary." << exit(FatalIOError);
-        }
+	{
+		FatalIOErrorIn("readFlowCondition.H", releaseFlow)
+			<< "Entry " << boundaryInfo << " in boundaries section is not a"
+			<< " valid dictionary." << exit(FatalIOError);
+	}
 
 	boundaryNames[boundaryI] = boundaryInfo.keyword();
 
 	const word boundaryName = boundaryNames[boundaryI];
 
 	if (faboundaryNames.find(boundaryName) == -1)
-        {
-            FatalIOErrorIn("readFlowCondition.H", releaseFlow)
-                << "Entry " << boundaryName << " in boundaries section is not a"
-                << " valid boundary in faBoundary." << exit(FatalIOError);
-        }
+	{
+		FatalIOErrorIn("readFlowCondition.H", releaseFlow)
+			<< "Entry " << boundaryName << " in boundaries section is not a"
+			<< " valid boundary in faBoundary." << exit(FatalIOError);
+	}
 
-        dictionary boundaryDict = boundaryInfo.dict();
+    dictionary boundaryDict = boundaryInfo.dict();
 	
 	word sense;
 	word direction;
@@ -80,7 +80,7 @@ forAll(boundaryNames, boundaryI)
 	boundaryDict.lookup("sense") >> sense;
 	boundaryDict.lookup("direction") >> direction;
 
-        keyType name = boundaryNames[boundaryI];
+    keyType name = boundaryNames[boundaryI];
 
 	dictionary subHidrogram(name);
 
@@ -100,9 +100,9 @@ forAll(boundaryNames, boundaryI)
 	}
 	else
 	{
-            	FatalIOErrorIn("readFlowCondition.H", releaseFlow)
-                	 << direction << " is not a valid Direction." << exit(FatalIOError);
-        }
+		FatalIOErrorIn("readFlowCondition.H", releaseFlow)
+			 << direction << " is not a valid Direction." << exit(FatalIOError);
+	}
 
 	scalar sign = 0;
 
@@ -116,9 +116,9 @@ forAll(boundaryNames, boundaryI)
 	}
 	else
 	{
-            	FatalIOErrorIn("readFlowCondition.H", releaseFlow)
-                	<< sense << " is not a valid Sense." << exit(FatalIOError);
-        }
+		FatalIOErrorIn("readFlowCondition.H", releaseFlow)
+			<< sense << " is not a valid Sense." << exit(FatalIOError);
+	}
 
 	label index = faBoundaries.findIndex(boundaryName);
 
@@ -164,6 +164,7 @@ forAll(boundaryNames, boundaryI)
 
 Info << "Hidrograms =" << Hidrograms << endl;
 Info << "Creating initial flow condition " << endl;
+
 #include "createFlowCondition.H"
 
 h = max(h,hmin);

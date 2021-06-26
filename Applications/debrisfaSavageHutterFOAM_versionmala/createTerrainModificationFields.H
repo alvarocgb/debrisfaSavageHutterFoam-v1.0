@@ -106,26 +106,26 @@ if (terrainModification)
 
 	IOdictionary faMeshDefinition
 	(
-		IOobject
-		(
-			"faMeshDefinition",
-			runTime.constant(),
-			"faMesh",
-			mesh,
-			IOobject::MUST_READ,
-			IOobject::NO_WRITE
-		)
+	    IOobject
+	    (
+		"faMeshDefinition",
+		runTime.constant(),
+		"faMesh",
+		mesh,
+		IOobject::MUST_READ,
+		IOobject::NO_WRITE
+	    )
 	);
 
 	wordList patchNameList = faMeshDefinition.lookup("polyMeshPatches");
 	patchName = patchNameList[0];
 	
 	PointListPolyMesh = aMesh.mesh().points(); //raw points of the polyMesh object linked to the faMesh object
-	meshPts = aMesh.patch().meshPoints(); //patch() returns constant reference to primitive patch. meshPoints return labelList of mesh points in patch.
+	meshPts = aMesh.patch().meshPoints(); //patch() returns constant reference to primitive patch. meshPoints return labelList of mesh points in patch
 
-    	faceNeighbours = List<List<label>>(aMesh.nFaces());
+    faceNeighbours  = List<List<label>>(aMesh.nFaces());
 	NfaceNeighbours = Field<scalar>(aMesh.nFaces(), zero());
-	edgeNeighbours = List<List<label>>(aMesh.nFaces());
+	edgeNeighbours  = List<List<label>>(aMesh.nFaces());
 	NedgeNeighbours = Field<scalar>(aMesh.nFaces(), zero());
 
 	IOdictionary N_A_dict //This is created by newreleaseAreaMapping when the terrainModification button is "on"
@@ -160,7 +160,6 @@ if (terrainModification)
 				IOobject::NO_WRITE
 			)
 		);
-
 		pointAddressing = pointProcAddressing;
 	}
 	else
@@ -265,7 +264,7 @@ if (terrainModification)
 				forAll(edgeList, edgeI)
 				{
 					NedgeNeighbours[edgeFaces[edgeI]] ++;
-		    			edgeNeighbours[edgeFaces[edgeI]].append(edgeList[edgeI]);
+		    		edgeNeighbours[edgeFaces[edgeI]].append(edgeList[edgeI]);
 				}		
 			}
 		}

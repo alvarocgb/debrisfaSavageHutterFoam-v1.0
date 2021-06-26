@@ -25,7 +25,8 @@ Application
     debrisfaSavageHutterFoam
 
 Description
-
+    Solver for density variable fluids. The equations are depth integrated
+    and the finite area method is used.
 
 Author
     Álvaro González Bilbao 
@@ -81,7 +82,7 @@ int main(int argc, char *argv[])
         #include "readTimeControls.H"
         #include "surfaceCourantNo.H"
         runTime.setDeltaT
-	(
+	    (
             min(maxCo/(CoNum + SMALL)*runTime.deltaT().value(), maxDeltaT)
         );
     }
@@ -125,11 +126,11 @@ int main(int argc, char *argv[])
 
             SolverPerformance<vector> UsResidual = solve(UsEqn);
 
-            tau = (tauSc + tauSp*Us);
+            tau  = (tauSc + tauSp*Us);
             phis = (fac::interpolate(Us) & aMesh.Le());
 
             const areaScalarField & Sd = deposition->Sd();
-	    const areaScalarField & Sm = entrainment->Sm();
+	        const areaScalarField & Sm = entrainment->Sm();
 
             faScalarMatrix rhohEqn
             (
@@ -147,7 +148,7 @@ int main(int argc, char *argv[])
             if (!final)
                 rhohEqn.relax();
 
-	    solverPerformance rhohResidual = rhohEqn.solve();
+	        solverPerformance rhohResidual = rhohEqn.solve();
 
             faScalarMatrix CwhEqn
             (
@@ -165,21 +166,21 @@ int main(int argc, char *argv[])
             if (!final)
                 CwhEqn.relax();
 
-	    solverPerformance CwhResidual = CwhEqn.solve();
+	        solverPerformance CwhResidual = CwhEqn.solve();
 
             phi2s = rhohEqn.flux();
 
-	    Cw = rho_s/(rhoh/(Cwh+dimensionedScalar("small", dimLength, SMALL))+rho_s-rho_w);
-	    Cw = min(dimensionedScalar("one", dimless,1),max(dimensionedScalar("zero", dimless,0),Cw));
-	    h = max(Cwh/(Cw+dimensionedScalar("small", dimless, SMALL)),hmin);
-	    rho = rho_w*Cw+rho_s*(1-Cw);
-	    Cwh = Cw*h;
-	    rhoh = rho*h;
-	    Cv = 1-Cw;
+            Cw = rho_s/(rhoh/(Cwh+dimensionedScalar("small", dimLength, SMALL))+rho_s-rho_w);
+            Cw = min(dimensionedScalar("one", dimless,1),max(dimensionedScalar("zero", dimless,0),Cw));
+            h  = max(Cwh/(Cw+dimensionedScalar("small", dimless, SMALL)),hmin);
+            rho  = rho_w*Cw+rho_s*(1-Cw);
+            Cwh  = Cw*h;
+            rhoh = rho*h;
+            Cv = 1-Cw;
 
-	    Q = (phi2s+CwhEqn.flux()*(rho_s-rho_w))/rho_s;
+            Q = (phi2s+CwhEqn.flux()*(rho_s-rho_w))/rho_s;
 
-	    deltahh = (Sd-Sm)*runTime.deltaT();
+            deltahh = (Sd-Sm)*runTime.deltaT();
 
             h.correctBoundaryConditions();
             rhoh.correctBoundaryConditions();
@@ -193,7 +194,7 @@ int main(int argc, char *argv[])
                     Info<< "reached residual in rhoh = "
                         << rhohResidual.initialResidual()
                         << " < " << rhohResidualMax
-			<< ", in Cwh = "
+			            << ", in Cwh = "
                         << CwhResidual.initialResidual()
                         << " < " << CwhResidualMax
                         << " and in Us = "
@@ -224,33 +225,33 @@ int main(int argc, char *argv[])
             }
         }
 
-	he += deltahh;
+	    he += deltahh;
 
         if (terrainModification)
-	{  
-	    deltah += deltahh;
- 
-	    #include "terrainModification.H"
-   
-	    deltac0 = (c & vector(0,0,1))-c0;
-	}
-	else
-	{
-	    deltah0 = he-he0;
-	}
+		{  
+			deltah += deltahh;
+	 
+			#include "terrainModification.H"
+	   
+			deltac0 = (c & vector(0,0,1))-c0;
+		}
+		else
+		{
+			deltah0 = he-he0;
+		}
 
         if (runTime.outputTime())
         {
             runTime.write();
 
-	    if (terrainModification)
-	    {
-		deltac0.write();	
-	    }
-	    else
-	    {
-		deltah0.write();
-	    }
+            if (terrainModification)
+            {
+                deltac0.write();	
+            }
+            else
+            {
+                deltah0.write();
+            }
         }
 
         runTime.printExecutionTime(Info);

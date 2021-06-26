@@ -2,47 +2,47 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | debrisfaSavageHutterFOAM
-    \\  /    A nd           | Copyright (C) 
+    \\  /    A nd           | Copyright (C)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
 
-    foam-extend is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the
-    Free Software Foundation, either version 3 of the License, or (at your
-    option) any later version.
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    foam-extend is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    General Public License for more details.
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
 
     You should have received a copy of the GNU General Public License
-    along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Namespace
-    Foam::depositionModels
+    Foam::entrainmentModels
 
 Description
-    A namespace for various deposition model implementations.
+    A namespace for various entrainment model implementations.
 
 Class
-    Foam::depositionModel
+    Foam::entrainmentModel
 
 Description
-    An abstract base class for deposition models
+    An abstract base class for entrainment models
 
 SourceFiles
-    depositionModel.C
-    depositionModelNew.C
+    entrainmentModel.C
+    entrainmentModelNew.C
 
 Author
-    
+
 \*---------------------------------------------------------------------------*/
 
-#ifndef depositionModel_H
-#define depositionModel_H
+#ifndef entrainmentModel_H
+#define entrainmentModel_H
 
 #include "IOdictionary.H"
 #include "typeInfo.H"
@@ -61,16 +61,16 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                       Class depositionModel Declaration
+                         Class entrainmentModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class depositionModel
+class entrainmentModel
 {
 protected:
 
     // Protected data
 
-        dictionary depositionProperties_;
+        dictionary entrainmentProperties_;
 
         //- Model coefficients dictionary
         dictionary coeffDict_;
@@ -84,6 +84,9 @@ protected:
         //- Reference to the flow density field
         const areaScalarField& rho_;
 
+        //- Reference to the volumetric sediment concentration field
+        const areaScalarField& Cv_;
+
         //- Reference to the erodible layer height field
         const areaScalarField& he_;
 
@@ -93,38 +96,32 @@ protected:
         //- Reference to the bottom stress field
         const areaVectorField& tau_;
 
-        //- Reference to the volumetric sediment concentration field
-        const areaScalarField& Cv_;
+        //- Source term
+        mutable areaScalarField Sm_;
 
-        //- Sink term
-        mutable areaScalarField Sd_;
-
-	//- 
-	dimensionedScalar Cvb_;
-
-	//- Deposition zones field
-        areaScalarField dZ_;
+	    //- Entrainment zones field
+        mutable areaScalarField eZ_;
 
 
     // Protected Member Functions
 
-        //- Read/update the depositionProperties and coeffDict dictionaries
+        //- Read/update the entrainmentProperties and coeffDict dictionaries
         void readDict(const word& type, const dictionary& dict);
 
         //- 
-        void readdepositionZones();
+        void readentrainmentZones();
 
         //- Disallow copy construct
-        depositionModel(const depositionModel&) = delete;
+        entrainmentModel(const entrainmentModel&) = delete;
 
         //- Disallow default bitwise assignment
-        void operator=(const depositionModel&) = delete;
+        void operator=(const entrainmentModel&) = delete;
 
 
 public:
 
     //- Runtime type information
-    TypeName("depositionModel");
+    TypeName("entrainmentModel");
 
 
     // Declare run-time constructor selection table
@@ -133,10 +130,10 @@ public:
         declareRunTimeSelectionTable
         (
             autoPtr,
-            depositionModel,
+            entrainmentModel,
             dictionary,
             (
-                const dictionary& depositionProperties,
+                const dictionary& entrainmentProperties,
                 const areaVectorField& Us,
                 const areaScalarField& h,
                 const areaScalarField& he,
@@ -145,57 +142,57 @@ public:
                 const areaVectorField& tau,
                 const areaScalarField& Cv
             ),
-            (depositionProperties, Us, h, he, rho, pb, tau, Cv)
+            (entrainmentProperties, Us, h, he, rho, pb, tau, Cv)
         );
 #endif
 
 
     // Selectors
 
-        //- Return a reference to the selected deposition model
-        static autoPtr<depositionModel> New
+        //- Return a reference to the selected entrainment model
+        static autoPtr<entrainmentModel> New
         (
-            const dictionary& depositionProperties,
+            const dictionary& entrainmentProperties,
             const areaVectorField& Us,
             const areaScalarField& h,
             const areaScalarField& he,
-	    const areaScalarField& rho,
+	        const areaScalarField& rho,
             const areaScalarField& pb,
             const areaVectorField& tau,
-	    const areaScalarField& Cv
+	        const areaScalarField& Cv
         );
 
 
     // Constructors
 
         //- Construct from components
-        depositionModel
+        entrainmentModel
         (
             const word& type,
-            const dictionary& depositionProperties,
+            const dictionary& entrainmentProperties,
             const areaVectorField& Us,
             const areaScalarField& h,
             const areaScalarField& he,
-	    const areaScalarField& rho,
+	        const areaScalarField& rho,
             const areaScalarField& pb,
             const areaVectorField& tau,
-	    const areaScalarField& Cv
+	        const areaScalarField& Cv
         );
 
 
     //- Destructor
-    virtual ~depositionModel() = default;
+    virtual ~entrainmentModel() = default;
 
 
     // Member Functions
 
-        //- Read depositionProperties dictionary
-        virtual bool read(const dictionary& depositionProperties) = 0;
+        //- Read entrainmentProperties dictionary
+        virtual bool read(const dictionary& entrainmentProperties) = 0;
 
-        //- Return the deposition properties dictionary
-        const dictionary& depositionProperties() const
+        //- Return the entrainment properties dictionary
+        const dictionary& entrainmentProperties() const
         {
-            return depositionProperties_;
+            return entrainmentProperties_;
         }
 
         //- Const access to the model coefficients dictionary
@@ -204,8 +201,8 @@ public:
             return coeffDict_;
         }
 
-        //- Return Sink by deposition
-        virtual const areaScalarField& Sd() const = 0;
+        //- Return the Source by entrainment
+        virtual const areaScalarField& Sm() const = 0;
 };
 
 
