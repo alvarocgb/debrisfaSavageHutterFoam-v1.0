@@ -120,7 +120,6 @@ protected:
         //- Set tauSp field to zero
         void resetTauSp() const;
 
-
         //- Disallow copy construct
         frictionModel(const frictionModel&) = delete;
 

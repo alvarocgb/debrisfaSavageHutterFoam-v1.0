@@ -1,4 +1,3 @@
-
 pb = -shi*fac::ndiv(phi2s, Us)&n;
 pb += rho*(g*h)&n;
 
@@ -8,4 +7,3 @@ if (pressureFeedback)
 }
 
 pb = Foam::max(pb, dimensionedScalar(dimPressure));
-

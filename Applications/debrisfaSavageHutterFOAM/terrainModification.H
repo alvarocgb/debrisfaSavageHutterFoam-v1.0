@@ -88,3 +88,4 @@ if (deltahMin.value() < maxdeltah || -deltahMin.value() > mindeltah)
 
 deltah = deltah*nz;
 deltah.correctBoundaryConditions();
+
