@@ -21,11 +21,11 @@ forAll(boundaryNames, boundaryI)
 	label j = subtimes.size()-1;
 
 	if (t<subtimes[i])
-    {
+    	{
 		FatalIOErrorIn("createFlowCondition.H", releaseFlow)
 			<< "Time " << runTime.timeName() << "s is not a"
 			<< " valid time for the introduced hidrograph." << exit(FatalIOError);
-    }
+    	}
 	else if (t<= subtimes[j])
 	{
 		while(j-i>1)
@@ -44,7 +44,7 @@ forAll(boundaryNames, boundaryI)
 			{
 				i = n;
 			}
-        }
+        	}
 		Qt = subflows[i]+(subflows[j]-subflows[i])/(subtimes[j]-subtimes[i]+SMALL)*(t-subtimes[i]);
 		Cvt = subCvs[i]+(subCvs[j]-subCvs[i])/(subtimes[j]-subtimes[i]+SMALL)*(t-subtimes[i]);
 	}
@@ -58,7 +58,7 @@ forAll(boundaryNames, boundaryI)
 	float Cwt  = 1-Cvt;
 
 	const scalar & ut = friction->ut(Qt*alpha, subwide, subslope, rhot, boundaryName);	
-    const List<scalar> & ht = friction->ht(Qt*alpha, subwide, subslope, subheight, rhot, boundaryName);
+    	const List<scalar> & ht = friction->ht(Qt*alpha, subwide, subslope, subheight, rhot, boundaryName);
 
 	label length(faBoundaries[faboundaryNames.find(boundaryName)].size());
 	label index(faboundaryNames.find(boundaryName));

@@ -80,7 +80,7 @@ forAll(boundaryNames, boundaryI)
 	boundaryDict.lookup("sense") >> sense;
 	boundaryDict.lookup("direction") >> direction;
 
-    keyType name = boundaryNames[boundaryI];
+    	keyType name = boundaryNames[boundaryI];
 
 	dictionary subHidrogram(name);
 

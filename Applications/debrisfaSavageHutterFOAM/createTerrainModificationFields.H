@@ -123,7 +123,7 @@ if (terrainModification)
 	PointListPolyMesh = aMesh.mesh().points(); //raw points of the polyMesh object linked to the faMesh object
 	meshPts = aMesh.patch().meshPoints(); //patch() returns constant reference to primitive patch. meshPoints return labelList of mesh points in patch
 
-    faceNeighbours  = List<List<label>>(aMesh.nFaces());
+    	faceNeighbours  = List<List<label>>(aMesh.nFaces());
 	NfaceNeighbours = Field<scalar>(aMesh.nFaces(), zero());
 	edgeNeighbours  = List<List<label>>(aMesh.nFaces());
 	NedgeNeighbours = Field<scalar>(aMesh.nFaces(), zero());

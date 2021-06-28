@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
         #include "readTimeControls.H"
         #include "surfaceCourantNo.H"
         runTime.setDeltaT
-	    (
+	(
             min(maxCo/(CoNum + SMALL)*runTime.deltaT().value(), maxDeltaT)
         );
     }
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
             phis = (fac::interpolate(Us) & aMesh.Le());
 
             const areaScalarField & Sd = deposition->Sd();
-	        const areaScalarField & Sm = entrainment->Sm();
+	    const areaScalarField & Sm = entrainment->Sm();
 
             faScalarMatrix rhohEqn
             (
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
             if (!final)
                 rhohEqn.relax();
 
-	        solverPerformance rhohResidual = rhohEqn.solve();
+	    solverPerformance rhohResidual = rhohEqn.solve();
 
             faScalarMatrix CwhEqn
             (
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
             if (!final)
                 CwhEqn.relax();
 
-	        solverPerformance CwhResidual = CwhEqn.solve();
+	    solverPerformance CwhResidual = CwhEqn.solve();
 
             phi2s = rhohEqn.flux();
 
@@ -225,20 +225,20 @@ int main(int argc, char *argv[])
             }
         }
 
-	    he += deltahh;
+	he += deltahh;
 
         if (terrainModification)
-		{  
-			deltah += deltahh;
-	 
-			#include "terrainModification.H"
-	   
-			deltac0 = (c & vector(0,0,1))-c0;
-		}
-		else
-		{
-			deltah0 = he-he0;
-		}
+	{  
+		deltah += deltahh;
+
+		#include "terrainModification.H"
+
+		deltac0 = (c & vector(0,0,1))-c0;
+	}
+	else
+	{
+		deltah0 = he-he0;
+	}
 
         if (runTime.outputTime())
         {
