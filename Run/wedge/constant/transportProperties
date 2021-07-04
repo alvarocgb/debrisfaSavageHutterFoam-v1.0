@@ -53,8 +53,8 @@ VoellmyCoeffs
 
 ExponentialCoeffs
 {
-    E               E [0 -1 0 0 0 0 0]      0.002;
-    tauc            tauc [1 -1 -2 0 0 0 0]   750;
+    E               E [0 -1 0 0 0 0 0]      0.001;
+    tauc            tauc [1 -1 -2 0 0 0 0]  1000;
     entrainment	    nonuniform;
     entrainmentZones
     (
@@ -67,29 +67,6 @@ ExponentialCoeffs
                 (180. 900. 0)
                 (180. 300. 0)
                 (20. 300. 0)
-            );
-        }
-    );
-}
-
-
-StoppingprofileCoeffs
-{
-    ad              ad [0 0 0 0 0 0 0]      1.0;
-    ud              ud [0 1 -1 0 0 0 0]     0.25;
-    hmin            hmin [ 0 1 0 0 0 0 0]   1e-5;
-    deposition	    nonuniform;
-    depositionZones
-    (
-        base
-        {
-            offset (0 0 0);
-            vertices
-            (
-                (20. 900. 0)
-                (180. 900. 0)
-                (180. 270. 0)
-                (20. 270. 0)
             );
         }
     );
